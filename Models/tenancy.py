@@ -1,4 +1,5 @@
 from main import db
+from sqlalchemy.sql import func
 
 class Tenancy(db.Model):
     # define the table name for the db
@@ -11,6 +12,9 @@ class Tenancy(db.Model):
     tenancy_status = db.Column(db.String(50), nullable=False)
     created_at = db.Column(db.DateTime(timezone=True), server_default=func.now())
     updated_at = db.Column(db.DateTime(timezone=True), onupdate=func.now())
-
-    property = db.relationship("property", back_populates="tenancy")
     
+    # RELATIONSHIP
+    property = db.relationship("Property", back_populates="tenancies")
+
+    # Many-to-many via TenantTenancy
+    tenant_links = db.relationship("TenantTenancy", back_populates="tenancy")

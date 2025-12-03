@@ -1,4 +1,5 @@
 from main import db
+from sqlalchemy.sql import func
 
 class Tenant(db.Model):
     # define the table name for the db
@@ -11,4 +12,10 @@ class Tenant(db.Model):
     email = db.Column(db.String(50))
     created_at = db.Column(db.DateTime(timezone=True), server_default=func.now())
     updated_at = db.Column(db.DateTime(timezone=True), onupdate=func.now())
+
+    # Many-to-many via junction table
+    tenancy_links = db.relationship("TenantTenancy", back_populates="tenant")
+
+    # Many-to-many via TenantSupportWorker
+    support_worker_links = db.relationship("TenantSupportWorker", back_populates="tenant")
     

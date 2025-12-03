@@ -1,4 +1,5 @@
 from main import db
+from sqlalchemy.sql import func
 
 class SupportWorker(db.Model):
     # define the table name for the db
@@ -11,3 +12,5 @@ class SupportWorker(db.Model):
     created_at = db.Column(db.DateTime(timezone=True), server_default=func.now())
     updated_at = db.Column(db.DateTime(timezone=True), onupdate=func.now())
     
+    # Many-to-many via TenantSupportWorker
+    tenant_links = db.relationship("TenantSupportWorker", back_populates="support_worker")
