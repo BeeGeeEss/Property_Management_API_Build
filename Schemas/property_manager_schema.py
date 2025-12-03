@@ -9,4 +9,4 @@ class PropertyManagerSchema(ma.Schema):
 # single competition schema, when one competition needs to be retrieved
 property_manager_schema = PropertyManagerSchema()
 # multiple competition schema, when many competitions need to be retrieved
-property_manager_schema = PropertyManagerSchema(many=True)
+property_managers_schema = PropertyManagerSchema(many=True)

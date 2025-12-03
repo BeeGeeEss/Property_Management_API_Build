@@ -2,6 +2,7 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
 
+
 # creating our database object! This allows us to use our ORM
 db = SQLAlchemy()
 
@@ -21,5 +22,8 @@ def create_app():
 
     # initialising our marshmallow object with the flask app
     ma.init_app(app)
+
+    from commands import db_commands
+    app.register_blueprint(db_commands)
     
     return app
