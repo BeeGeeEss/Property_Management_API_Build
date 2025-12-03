@@ -1,94 +1,71 @@
 from flask import Blueprint, jsonify, request, abort
-from main import db
+from extensions import db
 from Models.property import Property
-from Models.property_manager import PropertyManager
 from Schemas.property_schema import property_schema, properties_schema
 
-properties_bp = Blueprint(
-    'properties', __name__, url_prefix="/properties"
-)
+# Blueprint definition
+properties_bp = Blueprint('properties', __name__, url_prefix="/properties")
 
 # -------------------------
 # GET all properties
 # -------------------------
 @properties_bp.route("/", methods=["GET"])
 def get_properties():
-    """Docstring"""
     stmt = db.select(Property)
     properties_list = db.session.scalars(stmt)
-    result = properties_schema.dump(properties_list)
-    return jsonify(result)
+    return jsonify(properties_schema.dump(properties_list))
 
 # -------------------------
-# GET a single property by ID
+# GET a single property by property_id
 # -------------------------
-@properties_bp.route("/<int:id>/", methods=["GET"])
-def get_property(id):
-    """Docstring"""
-    stmt = db.select(Property).filter_by(id=id)
-    prop = db.session.scalar(stmt)
-    if not prop:
+@properties_bp.route("/<int:property_id>/", methods=["GET"])
+def get_property(property_id):
+    property_obj = db.get(Property, property_id)
+    if not property_obj:
         return abort(404, description="Property not found")
-    return jsonify(property_schema.dump(prop))
+    return jsonify(property_schema.dump(property_obj))
 
 # -------------------------
 # CREATE a new property
 # -------------------------
 @properties_bp.route("/", methods=["POST"])
 def create_property():
-    """Docstring"""
-    prop_fields = property_schema.load(request.json)
-
-    # If property_manager_id is provided, ensure it exists
-    manager = None
-    if "property_manager_id" in prop_fields:
-        manager = db.get(PropertyManager, prop_fields["property_manager_id"])
-        if not manager:
-            return abort(404, description="Property Manager not found")
-
+    property_fields = property_schema.load(request.json)
     new_property = Property(
-        address=prop_fields["address"],
-        property_manager=manager  # set via relationship
+        address=property_fields["address"],
+        property_manager_id=property_fields.get("property_manager_id")
     )
-
     db.session.add(new_property)
     db.session.commit()
     return jsonify(property_schema.dump(new_property)), 201
 
 # -------------------------
-# DELETE a property by ID
+# DELETE a property by property_id
 # -------------------------
-@properties_bp.route("/<int:id>/", methods=["DELETE"])
-def delete_property(id):
-    """Docstring"""
-    prop = db.get(Property, id)
-    if not prop:
+@properties_bp.route("/<int:property_id>/", methods=["DELETE"])
+def delete_property(property_id):
+    property_obj = db.get(Property, property_id)
+    if not property_obj:
+        return abort(404, description="Property not found")
+    db.session.delete(property_obj)
+    db.session.commit()
+    return jsonify(property_schema.dump(property_obj)), 200
+
+# -------------------------
+# UPDATE a property by property_id
+# -------------------------
+@properties_bp.route("/<int:property_id>/", methods=["PUT"])
+def update_property(property_id):
+    property_obj = db.get(Property, property_id)
+    if not property_obj:
         return abort(404, description="Property not found")
 
-    db.session.delete(prop)
-    db.session.commit()
-    return jsonify(property_schema.dump(prop)), 200
+    property_fields = property_schema.load(request.json, partial=True)
 
-# -------------------------
-# UPDATE a property by ID
-# -------------------------
-@properties_bp.route("/<int:id>/", methods=["PUT"])
-def update_property(id):
-    """Docstring"""
-    prop = db.get(Property, id)
-    if not prop:
-        return abort(404, description="Property not found")
-
-    prop_fields = property_schema.load(request.json, partial=True)
-
-    if "address" in prop_fields:
-        prop.address = prop_fields["address"]
-
-    if "property_manager_id" in prop_fields:
-        manager = db.get(PropertyManager, prop_fields["property_manager_id"])
-        if not manager:
-            return abort(404, description="Property Manager not found")
-        prop.property_manager = manager
+    if "address" in property_fields:
+        property_obj.address = property_fields["address"]
+    if "property_manager_id" in property_fields:
+        property_obj.property_manager_id = property_fields["property_manager_id"]
 
     db.session.commit()
-    return jsonify(property_schema.dump(prop)), 200
+    return jsonify(property_schema.dump(property_obj)), 200

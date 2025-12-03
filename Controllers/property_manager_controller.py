@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request, abort
-from main import db
+from extensions import db
 from Models.property_manager import PropertyManager
 from Schemas.property_manager_schema import property_manager_schema, property_managers_schema
 
@@ -12,19 +12,16 @@ property_managers_bp = Blueprint(
 # -------------------------
 @property_managers_bp.route("/", methods=["GET"])
 def get_property_managers():
-    """Docstring"""
     stmt = db.select(PropertyManager)
     managers_list = db.session.scalars(stmt)
-    result = property_managers_schema.dump(managers_list)
-    return jsonify(result)
+    return jsonify(property_managers_schema.dump(managers_list))
 
 # -------------------------
-# GET a single property manager by ID
+# GET a single property manager by property_manager_id
 # -------------------------
-@property_managers_bp.route("/<int:id>/", methods=["GET"])
-def get_property_manager(id):
-    """Docstring"""
-    stmt = db.select(PropertyManager).filter_by(id=id)
+@property_managers_bp.route("/<int:property_manager_id>/", methods=["GET"])
+def get_property_manager(property_manager_id):
+    stmt = db.select(PropertyManager).filter_by(id=property_manager_id)
     manager = db.session.scalar(stmt)
     if not manager:
         return abort(404, description="Property Manager not found")
@@ -35,7 +32,6 @@ def get_property_manager(id):
 # -------------------------
 @property_managers_bp.route("/", methods=["POST"])
 def create_property_manager():
-    """Docstring"""
     manager_fields = property_manager_schema.load(request.json)
 
     new_manager = PropertyManager(
@@ -49,12 +45,11 @@ def create_property_manager():
     return jsonify(property_manager_schema.dump(new_manager)), 201
 
 # -------------------------
-# DELETE a property manager by ID
+# DELETE a property manager by property_manager_id
 # -------------------------
-@property_managers_bp.route("/<int:id>/", methods=["DELETE"])
-def delete_property_manager(id):
-    """Docstring"""
-    stmt = db.select(PropertyManager).filter_by(id=id)
+@property_managers_bp.route("/<int:property_manager_id>/", methods=["DELETE"])
+def delete_property_manager(property_manager_id):
+    stmt = db.select(PropertyManager).filter_by(id=property_manager_id)
     manager = db.session.scalar(stmt)
     if not manager:
         return abort(404, description="Property Manager not found")
@@ -64,12 +59,11 @@ def delete_property_manager(id):
     return jsonify(property_manager_schema.dump(manager)), 200
 
 # -------------------------
-# UPDATE a property manager by ID
+# UPDATE a property manager by property_manager_id
 # -------------------------
-@property_managers_bp.route("/<int:id>/", methods=["PUT"])
-def update_property_manager(id):
-    """Docstrings"""
-    stmt = db.select(PropertyManager).filter_by(id=id)
+@property_managers_bp.route("/<int:property_manager_id>/", methods=["PUT"])
+def update_property_manager(property_manager_id):
+    stmt = db.select(PropertyManager).filter_by(id=property_manager_id)
     manager = db.session.scalar(stmt)
     if not manager:
         return abort(404, description="Property Manager not found")

@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request, abort
-from main import db
+from extensions import db
 from Models.tenant import Tenant
 from Models.tenancy import Tenancy
 from Models.support_worker import SupportWorker
@@ -16,19 +16,16 @@ tenants_bp = Blueprint(
 # -------------------------
 @tenants_bp.route("/", methods=["GET"])
 def get_tenants():
-    """Docstring"""
     stmt = db.select(Tenant)
     tenants_list = db.session.scalars(stmt)
-    result = tenants_schema.dump(tenants_list)
-    return jsonify(result)
+    return jsonify(tenants_schema.dump(tenants_list))
 
 # -------------------------
-# GET a single tenant by ID
+# GET a single tenant by tenant_id
 # -------------------------
-@tenants_bp.route("/<int:id>/", methods=["GET"])
-def get_tenant(id):
-    """Docstring"""
-    tenant = db.get(Tenant, id)
+@tenants_bp.route("/<int:tenant_id>/", methods=["GET"])
+def get_tenant(tenant_id):
+    tenant = db.get(Tenant, tenant_id)
     if not tenant:
         return abort(404, description="Tenant not found")
     return jsonify(tenant_schema.dump(tenant))
@@ -38,7 +35,6 @@ def get_tenant(id):
 # -------------------------
 @tenants_bp.route("/", methods=["POST"])
 def create_tenant():
-    """Docstring"""
     tenant_fields = tenant_schema.load(request.json)
     new_tenant = Tenant(
         name=tenant_fields["name"],
@@ -52,12 +48,11 @@ def create_tenant():
     return jsonify(tenant_schema.dump(new_tenant)), 201
 
 # -------------------------
-# DELETE a tenant by ID
+# DELETE a tenant by tenant_id
 # -------------------------
-@tenants_bp.route("/<int:id>/", methods=["DELETE"])
-def delete_tenant(id):
-    """Docstring"""
-    tenant = db.get(Tenant, id)
+@tenants_bp.route("/<int:tenant_id>/", methods=["DELETE"])
+def delete_tenant(tenant_id):
+    tenant = db.get(Tenant, tenant_id)
     if not tenant:
         return abort(404, description="Tenant not found")
 
@@ -66,12 +61,11 @@ def delete_tenant(id):
     return jsonify(tenant_schema.dump(tenant)), 200
 
 # -------------------------
-# UPDATE a tenant by ID
+# UPDATE a tenant by tenant_id
 # -------------------------
-@tenants_bp.route("/<int:id>/", methods=["PUT"])
-def update_tenant(id):
-    """Docstring"""
-    tenant = db.get(Tenant, id)
+@tenants_bp.route("/<int:tenant_id>/", methods=["PUT"])
+def update_tenant(tenant_id):
+    tenant = db.get(Tenant, tenant_id)
     if not tenant:
         return abort(404, description="Tenant not found")
 
@@ -94,7 +88,6 @@ def update_tenant(id):
 # -------------------------
 @tenants_bp.route("/<int:tenant_id>/link_tenancy/<int:tenancy_id>/", methods=["POST"])
 def link_tenancy(tenant_id, tenancy_id):
-    """Docstring"""
     tenant = db.get(Tenant, tenant_id)
     tenancy = db.get(Tenancy, tenancy_id)
 
@@ -122,7 +115,6 @@ def link_tenancy(tenant_id, tenancy_id):
 # -------------------------
 @tenants_bp.route("/<int:tenant_id>/link_support_worker/<int:worker_id>/", methods=["POST"])
 def link_support_worker(tenant_id, worker_id):
-    """Docstring"""
     tenant = db.get(Tenant, tenant_id)
     worker = db.get(SupportWorker, worker_id)
 

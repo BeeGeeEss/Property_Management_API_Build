@@ -1,15 +1,20 @@
 from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-from flask_marshmallow import Marshmallow
+from extensions import db, ma
+# from flask_sqlalchemy import SQLAlchemy
+# from flask_marshmallow import Marshmallow
 
 from dotenv import load_dotenv
 load_dotenv()
 
+from Controllers import registerable_controllers
+from commands import db_commands
+
+
 # creating our database object! This allows us to use our ORM
-db = SQLAlchemy()
+# db = SQLAlchemy()
 
 # creating our marshmallow object! This allows us to use schemas
-ma = Marshmallow()
+# ma = Marshmallow()
 
 def create_app():
     """Docstring"""
@@ -26,12 +31,10 @@ def create_app():
     ma.init_app(app)
 
     # Import the database CLI commands and register them as a blueprint.
-    # This allows you to run commands like "flask db create", "flask db drop", and "flask db seed" from the terminal.
-    from commands import db_commands
+    # This allows you to run commands like "flask db create", "flask db drop".
     app.register_blueprint(db_commands)
 
     # import the controllers and activate the blueprints
-    from Controllers import registerable_controllers
     for blueprint in registerable_controllers:
         app.register_blueprint(blueprint)
 

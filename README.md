@@ -67,4 +67,4 @@ Some idea generation, library/licence comparisons, and guidance on document stru
 
 Developed by ✨BeeGeeEss✨
 
-https://github.com/beegeeess
+<https://github.com/beegeeess>

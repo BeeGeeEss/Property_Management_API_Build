@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request, abort
-from main import db
+from extensions import db
 from Models.tenancy import Tenancy
 from Models.tenant import Tenant
 from Models.property import Property
@@ -15,19 +15,16 @@ tenancies_bp = Blueprint(
 # -------------------------
 @tenancies_bp.route("/", methods=["GET"])
 def get_tenancies():
-    """Docstring"""
     stmt = db.select(Tenancy)
     tenancies_list = db.session.scalars(stmt)
-    result = tenancies_schema.dump(tenancies_list)
-    return jsonify(result)
+    return jsonify(tenancies_schema.dump(tenancies_list))
 
 # -------------------------
-# GET a single tenancy by ID
+# GET a single tenancy by tenancy_id
 # -------------------------
-@tenancies_bp.route("/<int:id>/", methods=["GET"])
-def get_tenancy(id):
-    """Docstring"""
-    tenancy = db.get(Tenancy, id)
+@tenancies_bp.route("/<int:tenancy_id>/", methods=["GET"])
+def get_tenancy(tenancy_id):
+    tenancy = db.get(Tenancy, tenancy_id)
     if not tenancy:
         return abort(404, description="Tenancy not found")
     return jsonify(tenancy_schema.dump(tenancy))
@@ -37,7 +34,6 @@ def get_tenancy(id):
 # -------------------------
 @tenancies_bp.route("/", methods=["POST"])
 def create_tenancy():
-    """Docstring"""
     tenancy_fields = tenancy_schema.load(request.json)
 
     # Validate property if property_id is provided
@@ -59,12 +55,11 @@ def create_tenancy():
     return jsonify(tenancy_schema.dump(new_tenancy)), 201
 
 # -------------------------
-# DELETE a tenancy by ID
+# DELETE a tenancy by tenancy_id
 # -------------------------
-@tenancies_bp.route("/<int:id>/", methods=["DELETE"])
-def delete_tenancy(id):
-    """Docstring"""
-    tenancy = db.get(Tenancy, id)
+@tenancies_bp.route("/<int:tenancy_id>/", methods=["DELETE"])
+def delete_tenancy(tenancy_id):
+    tenancy = db.get(Tenancy, tenancy_id)
     if not tenancy:
         return abort(404, description="Tenancy not found")
 
@@ -73,12 +68,11 @@ def delete_tenancy(id):
     return jsonify(tenancy_schema.dump(tenancy)), 200
 
 # -------------------------
-# UPDATE a tenancy by ID
+# UPDATE a tenancy by tenancy_id
 # -------------------------
-@tenancies_bp.route("/<int:id>/", methods=["PUT"])
-def update_tenancy(id):
-    """Docstring"""
-    tenancy = db.get(Tenancy, id)
+@tenancies_bp.route("/<int:tenancy_id>/", methods=["PUT"])
+def update_tenancy(tenancy_id):
+    tenancy = db.get(Tenancy, tenancy_id)
     if not tenancy:
         return abort(404, description="Tenancy not found")
 
@@ -105,7 +99,6 @@ def update_tenancy(id):
 # -------------------------
 @tenancies_bp.route("/<int:tenancy_id>/link_tenant/<int:tenant_id>/", methods=["POST"])
 def link_tenant(tenancy_id, tenant_id):
-    """Docstring"""
     tenancy = db.get(Tenancy, tenancy_id)
     tenant = db.get(Tenant, tenant_id)
 

@@ -1,12 +1,10 @@
-from main import db
+from extensions import db
 from flask import Blueprint
 from datetime import date
 from Models.property_manager import PropertyManager
 from Models.property import Property
 from Models.support_worker import SupportWorker
 from Models.tenancy import Tenancy
-from Models.tenant_support_worker import TenantSupportWorker
-from Models.tenant_tenancy import TenantTenancy
 from Models.tenant import Tenant
 
 db_commands = Blueprint("db", __name__)
@@ -69,7 +67,7 @@ def seed_db():
         property_manager_id=property_manager2.id
     )
     db.session.add(property2)
-    
+
     property3 = Property(
         address="100 Pterodactyl Close, Swan Hill, Vic, 3585",
         property_manager_id=property_manager3.id
@@ -77,7 +75,7 @@ def seed_db():
     db.session.add(property3)
     db.session.commit()
 
-    
+
     # SEED SUPPORT WORKER
 
     support_worker1 = SupportWorker(
@@ -94,7 +92,7 @@ def seed_db():
         email="JJ@MH.org"
     )
     db.session.add(support_worker2)
-    
+
     support_worker3 = SupportWorker(
         name="Peter Paulson",
         phone="0487654321",
@@ -122,7 +120,7 @@ def seed_db():
         property_id=property2.id
     )
     db.session.add(tenancy2)
-    
+
     tenancy3 = Tenancy(
         start_date=date(2019, 5, 1),
         end_date=None,
@@ -151,7 +149,7 @@ def seed_db():
         email="harrij@yahoo.com"
     )
     db.session.add(tenant2)
-    
+
     tenant3 = Tenant(
         name="Paula Deakin",
         date_of_birth=date(1990, 7, 14),
@@ -159,7 +157,7 @@ def seed_db():
         email="jupiter.sun@gmail.com"
     )
     db.session.add(tenant3)
-    
+ 
     # commit the changes
     db.session.commit()
     print("Table seeded")
