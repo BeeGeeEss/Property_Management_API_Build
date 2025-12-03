@@ -102,7 +102,7 @@ def seed_db():
     db.session.commit()
 
 
-# SEED TENANCY
+    # SEED TENANCY
 
     tenancy1 = Tenancy(
         start_date=date(2025, 12, 5),

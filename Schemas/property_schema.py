@@ -6,7 +6,7 @@ class PropertySchema(ma.SQLAlchemySchema):
         model = Property
         load_instance = True
 
-    property_id = ma.auto_field()
+    id = ma.auto_field()
     property_manager_id = ma.auto_field()
     address = ma.auto_field()
 

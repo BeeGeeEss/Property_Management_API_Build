@@ -4,6 +4,6 @@ class TenantTenancy(db.Model):
     # define the table name for the db
     __tablename__= "tenant_tenancy"
     # Set the primary key, we need to define that each attribute is also a column in the db table, remember "db" is the object we created in the previous step.
-    tenant_tenancy_id = db.Column(db.Integer,primary_key=True)
-    tenancy_id = db.Column(db.Integer, db.ForeignKey("tenancy.tenancy_id"))
-    tenant_id = db.Column(db.Integer, db.ForeignKey("tenant.tenant_id"))
+    id = db.Column(db.Integer,primary_key=True)
+    tenancy_id = db.Column(db.Integer, db.ForeignKey("tenancy.id"))
+    tenant_id = db.Column(db.Integer, db.ForeignKey("tenant.id"))

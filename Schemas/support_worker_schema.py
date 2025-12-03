@@ -6,7 +6,7 @@ class SupportWorkerSchema(ma.SQLAlchemySchema):
         model = SupportWorker
         load_instance = True
 
-    support_worker_id = ma.auto_field()
+    id = ma.auto_field()
     name = ma.auto_field()
     phone = ma.auto_field()
     email = ma.auto_field()

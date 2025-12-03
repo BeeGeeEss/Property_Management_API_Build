@@ -6,7 +6,7 @@ class TenantTenancySchema(ma.SQLAlchemySchema):
         model = TenantTenancy
         load_instance = True
 
-    tenant_tenancy_id = ma.auto_field()
+    id = ma.auto_field()
     tenant_id = ma.auto_field()
     tenancy_id = ma.auto_field()
 

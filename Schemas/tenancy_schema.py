@@ -6,7 +6,7 @@ class TenancySchema(ma.SQLAlchemySchema):
         model = Tenancy
         load_instance = True
 
-    tenancy_id = ma.auto_field()
+    id = ma.auto_field()
     property_id = ma.auto_field()
     start_date = ma.auto_field()
     end_date = ma.auto_field()

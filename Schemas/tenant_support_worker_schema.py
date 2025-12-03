@@ -6,7 +6,7 @@ class TenantSupportWorkerSchema(ma.SQLAlchemySchema):
         model = TenantSupportWorker
         load_instance = True
 
-    tenant_support_worker_id = ma.auto_field()
+    id = ma.auto_field()
     tenant_id = ma.auto_field()
     support_worker_id = ma.auto_field()
 
