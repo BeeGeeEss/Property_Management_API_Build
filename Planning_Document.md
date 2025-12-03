@@ -109,8 +109,7 @@ Attributes need to be reassed to be more precise and accurate. Organisation may 
 
 | Document checked | When checked | Who checked | Feedback provided | Actions to do based on feedback |
 |---|---:|---|---|---|
-| `ERD_Second_Draft.png` | 2025-12-02 | Amelia Gravette | I can understand the thought behind splitting `Contacts` out into a separate table. I would personally advise against this because. You've created an ultra-complexity with a triple join here (as in, it's a junction for `Tenants`, `Support_Workers` and `Property_Managers`). While these entities share attributes like Name, Phone, Email, and Role, those attributes belong to distinct individuals. Even though the fields look duplicated, the data isn’t, i.e. a Tenant’s name is not the same as a Support_Worker's name, etc. So it’s appropriate for each table to keep its own contact fields. I like how you've added the `Inspections` table, because that makes sense to include and makes it very real-world. However, if you're pressed for time and not aiming for the HD, you could cut this table out all together because it's an additional join table (trust me, they are a total nightmare to code; at least they were for me haha, and I only did 1), and you've got 3 join tables in this ERD - `Tenant_Support_Workers`, `Tenant_Tenancies` and `Inspections`. So: Keep it in if you want extra marks and want to make this as realistic as possible OR, Remove it if you want to make this less complex; it's really up to you how you'd like to do it. Also with your connectors, you've got the many-to-many's the wrong way for `Tenant_Tenancies`. The "many" side should be on this table so it reads as "one Tenant can have many Tenancies + one Tenancy can have many Tenants". 
-You've honestly done such a good job with this, I can definitely see the ideas you're trying to convey! I just recommend making some tweaks to simplify it | **1.** Make a decision to keep or cut `Inspections`. **2.** Change the relationship direction for `Tenant` and `Tenancies` when connecting to `Tenant_Tenancies`. **3.** Remove `Contacts` table and go back to listing contact details in `Tenants`, `Support_Workers` and `Property_Managers` for ease of coding. |
+| `ERD_Second_Draft.png` | 2025-12-02 | Amelia Gravette | I can understand the thought behind splitting `Contacts` out into a separate table. I would personally advise against this because. You've created an ultra-complexity with a triple join here (as in, it's a junction for `Tenants`, `Support_Workers` and `Property_Managers`). While these entities share attributes like Name, Phone, Email, and Role, those attributes belong to distinct individuals. Even though the fields look duplicated, the data isn’t, i.e. a Tenant’s name is not the same as a Support_Worker's name, etc. So it’s appropriate for each table to keep its own contact fields. I like how you've added the `Inspections` table, because that makes sense to include and makes it very real-world. However, if you're pressed for time and not aiming for the HD, you could cut this table out all together because it's an additional join table (trust me, they are a total nightmare to code; at least they were for me haha, and I only did 1), and you've got 3 join tables in this ERD - `Tenant_Support_Workers`, `Tenant_Tenancies` and `Inspections`. So: Keep it in if you want extra marks and want to make this as realistic as possible OR, Remove it if you want to make this less complex; it's really up to you how you'd like to do it. Also with your connectors, you've got the many-to-many's the wrong way for `Tenant_Tenancies`. The "many" side should be on this table so it reads as "one Tenant can have many Tenancies + one Tenancy can have many Tenants". You've honestly done such a good job with this, I can definitely see the ideas you're trying to convey! I just recommend making some tweaks to simplify it | **1.** Make a decision to keep or cut `Inspections`. **2.** Change the relationship direction for `Tenant` and `Tenancies` when connecting to `Tenant_Tenancies`. **3.** Remove `Contacts` table and go back to listing contact details in `Tenants`, `Support_Workers` and `Property_Managers` for ease of coding. |
 
 ---
 
@@ -134,12 +133,36 @@ The ERD can be simplified in order to satisfy the assignment criteria - and allo
 
 ---
 
+## Final ERD
+
+---
+
+![ERD Final Draft](/Images/ERD_Final.png)
+
+![Relationship Table Final Draft](/Images/Relationship_Table_Final.png)
+
 ## Database System
 
-### Chosen Database
+### PostgreSQL vs. MongoDB
 
-#### PostgreSQL
+The scope of this assignment determined that we needed to chose between PostgreSQl or MondoDB for the development of a database.
 
-### Reasoning - Alternative Choices
+PostgreSQl is an SQL-based object-relational database which organises data into tables (consisting of rows and columns). Tables are linked by the use of keys, which allows complex relationships to be created and updated. Postgres ensures a high level of data integrity and complex querying. Postgres is best used for structured data (Luna, 2025).  
 
-#### MongoDB
+MongoDB is a non-relational document database which stores unstructured data in key-value pairs within JSON documents. MongoDB does not rely on predefined relationships between data groups, instead using a flexible data model. MongoDB is high-performing and great for social media content (AWS, n.d).
+
+### Reason for Final Choice
+
+For this project, given that the data is structured and relies heavily on relationships, I chose to use PostgreSQL.
+
+Some of the reasons for my choice were: 1. The scalability of relational databases - given that this database is likely to expand and continue to evolve. 2. Wanting to have strong data integrity. 3. Wanting to be able to create complex queries. 4. Postgres works well for Customer Relationship Management Systems (CRMs) and that's essentially what this system is (AlgoDaily; Geeks for Geeks, 2025).
+
+#### References
+
+AlgoDaily. (n.d). *PostgreSQL for CRM databases.* <https://algodaily.com/lessons/postgresql-architecture>
+
+AWS. (n.d). *What’s the difference between MongoDB and PostgreSQL?* <http://apastyle.apa.org/style-grammar-guidelines/references/examples/webpage-website-references>
+
+Geeks for Geeks. (2025). *Difference between PostgreSQL and MongoDB.* <https://www.geeksforgeeks.org/postgresql/difference-between-postgresql-and-mongodb/>
+
+Luna, J. C. (2025). *PostgreSQL vs MongoDB: choosing the right database for your data projects.* <https://www.datacamp.com/blog/postgresql-vs-mongodb>
