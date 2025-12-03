@@ -2,7 +2,7 @@
 
 ---
 
-The purpose of this document is to present and review the *Entity Relationship Diagram (ERD)*, and analyse the decision to work with the chosen *database system*.
+The purpose of this document is to present and review the *Entity Relationship Diagram (ERD)*; and to analyse the decision to work with the chosen *database system*.
 
 ---
 
