@@ -1,0 +1,146 @@
+from flask import Blueprint, jsonify, request, abort
+from main import db
+from Models.tenant import Tenant
+from Models.tenancy import Tenancy
+from Models.support_worker import SupportWorker
+from Models.tenant_tenancy import TenantTenancy
+from Models.tenant_support_worker import TenantSupportWorker
+from Schemas.tenant_schema import tenant_schema, tenants_schema
+
+tenants_bp = Blueprint(
+    'tenants', __name__, url_prefix="/tenants"
+)
+
+# -------------------------
+# GET all tenants
+# -------------------------
+@tenants_bp.route("/", methods=["GET"])
+def get_tenants():
+    """Docstring"""
+    stmt = db.select(Tenant)
+    tenants_list = db.session.scalars(stmt)
+    result = tenants_schema.dump(tenants_list)
+    return jsonify(result)
+
+# -------------------------
+# GET a single tenant by ID
+# -------------------------
+@tenants_bp.route("/<int:id>/", methods=["GET"])
+def get_tenant(id):
+    """Docstring"""
+    tenant = db.get(Tenant, id)
+    if not tenant:
+        return abort(404, description="Tenant not found")
+    return jsonify(tenant_schema.dump(tenant))
+
+# -------------------------
+# CREATE a new tenant
+# -------------------------
+@tenants_bp.route("/", methods=["POST"])
+def create_tenant():
+    """Docstring"""
+    tenant_fields = tenant_schema.load(request.json)
+    new_tenant = Tenant(
+        name=tenant_fields["name"],
+        date_of_birth=tenant_fields["date_of_birth"],
+        phone=tenant_fields.get("phone"),
+        email=tenant_fields.get("email")
+    )
+
+    db.session.add(new_tenant)
+    db.session.commit()
+    return jsonify(tenant_schema.dump(new_tenant)), 201
+
+# -------------------------
+# DELETE a tenant by ID
+# -------------------------
+@tenants_bp.route("/<int:id>/", methods=["DELETE"])
+def delete_tenant(id):
+    """Docstring"""
+    tenant = db.get(Tenant, id)
+    if not tenant:
+        return abort(404, description="Tenant not found")
+
+    db.session.delete(tenant)
+    db.session.commit()
+    return jsonify(tenant_schema.dump(tenant)), 200
+
+# -------------------------
+# UPDATE a tenant by ID
+# -------------------------
+@tenants_bp.route("/<int:id>/", methods=["PUT"])
+def update_tenant(id):
+    """Docstring"""
+    tenant = db.get(Tenant, id)
+    if not tenant:
+        return abort(404, description="Tenant not found")
+
+    tenant_fields = tenant_schema.load(request.json, partial=True)
+
+    if "name" in tenant_fields:
+        tenant.name = tenant_fields["name"]
+    if "date_of_birth" in tenant_fields:
+        tenant.date_of_birth = tenant_fields["date_of_birth"]
+    if "phone" in tenant_fields:
+        tenant.phone = tenant_fields["phone"]
+    if "email" in tenant_fields:
+        tenant.email = tenant_fields["email"]
+
+    db.session.commit()
+    return jsonify(tenant_schema.dump(tenant)), 200
+
+# -------------------------
+# LINK tenant to tenancy
+# -------------------------
+@tenants_bp.route("/<int:tenant_id>/link_tenancy/<int:tenancy_id>/", methods=["POST"])
+def link_tenancy(tenant_id, tenancy_id):
+    """Docstring"""
+    tenant = db.get(Tenant, tenant_id)
+    tenancy = db.get(Tenancy, tenancy_id)
+
+    if not tenant or not tenancy:
+        return abort(404, description="Tenant or Tenancy not found")
+
+    # Prevent duplicate links
+    existing_link = db.session.scalar(
+        db.select(TenantTenancy)
+        .filter_by(tenant_id=tenant_id, tenancy_id=tenancy_id)
+    )
+    if existing_link:
+        return abort(400, description="Tenant already linked to this tenancy")
+
+    new_link = TenantTenancy(
+        tenant_id=tenant_id,
+        tenancy_id=tenancy_id
+    )
+    db.session.add(new_link)
+    db.session.commit()
+    return jsonify({"message": f"Tenant {tenant_id} linked to Tenancy {tenancy_id}"}), 201
+
+# -------------------------
+# LINK tenant to support worker
+# -------------------------
+@tenants_bp.route("/<int:tenant_id>/link_support_worker/<int:worker_id>/", methods=["POST"])
+def link_support_worker(tenant_id, worker_id):
+    """Docstring"""
+    tenant = db.get(Tenant, tenant_id)
+    worker = db.get(SupportWorker, worker_id)
+
+    if not tenant or not worker:
+        return abort(404, description="Tenant or Support Worker not found")
+
+    # Prevent duplicate links
+    existing_link = db.session.scalar(
+        db.select(TenantSupportWorker)
+        .filter_by(tenant_id=tenant_id, support_worker_id=worker_id)
+    )
+    if existing_link:
+        return abort(400, description="Tenant already linked to this support worker")
+
+    new_link = TenantSupportWorker(
+        tenant_id=tenant_id,
+        support_worker_id=worker_id
+    )
+    db.session.add(new_link)
+    db.session.commit()
+    return jsonify({"message": f"Tenant {tenant_id} linked to Support Worker {worker_id}"}), 201
