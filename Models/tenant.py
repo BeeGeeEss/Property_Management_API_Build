@@ -9,5 +9,3 @@ class Tenant(db.Model):
     date_of_birth = db.Column(db.Date, nullable=False)
     phone = db.Column(db.String(15))
     email = db.Column(db.String(50))
-
-    
