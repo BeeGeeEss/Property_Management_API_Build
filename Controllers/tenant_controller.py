@@ -70,24 +70,30 @@ def delete_tenant(tenant_id):
 # -------------------------
 @tenants_bp.route("/<int:tenant_id>/", methods=["PUT"])
 def update_tenant(tenant_id):
-    tenant = db.get(Tenant, tenant_id)
-    if not tenant:
-        return abort(404, description="Tenant not found")
 
     tenant_fields = tenant_schema.load(request.json, partial=True)
 
+    stmt = db.select(Tenant).filter_by(id=tenant_id)
+    tenant_obj = db.session.scalar(stmt)
+
+    if not tenant_obj:
+        return abort(400, description="Tenant does not exist")
+
     if "name" in tenant_fields:
-        tenant.name = tenant_fields["name"]
-    if "date_of_birth" in tenant_fields:
-        tenant.date_of_birth = tenant_fields["date_of_birth"]
-    if "phone" in tenant_fields:
-        tenant.phone = tenant_fields["phone"]
+        tenant_obj.name = tenant_fields["name"]
+
     if "email" in tenant_fields:
-        tenant.email = tenant_fields["email"]
+        tenant_obj.email = tenant_fields["email"]
+
+    if "phone" in tenant_fields:
+        tenant_obj.phone = tenant_fields["phone"]
+
+    if "support_worker_id" in tenant_fields:
+        tenant_obj.support_worker_id = tenant_fields["support_worker_id"]
 
     db.session.commit()
-    return jsonify(tenant_schema.dump(tenant)), 200
 
+    return jsonify(tenant_schema.dump(tenant_obj)), 200
 # -------------------------
 # LINK tenant to tenancy
 # -------------------------

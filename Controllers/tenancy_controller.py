@@ -76,27 +76,27 @@ def delete_tenancy(tenancy_id):
 # -------------------------
 @tenancies_bp.route("/<int:tenancy_id>/", methods=["PUT"])
 def update_tenancy(tenancy_id):
-    tenancy = db.get(Tenancy, tenancy_id)
-    if not tenancy:
-        return abort(404, description="Tenancy not found")
 
     tenancy_fields = tenancy_schema.load(request.json, partial=True)
 
-    if "property_id" in tenancy_fields:
-        property_obj = db.get(Property, tenancy_fields["property_id"])
-        if not property_obj:
-            return abort(404, description="Property not found")
-        tenancy.property_id = tenancy_fields["property_id"]
+    stmt = db.select(Tenancy).filter_by(id=tenancy_id)
+    tenancy_obj = db.session.scalar(stmt)
+
+    if not tenancy_obj:
+        return abort(400, description="Tenancy does not exist")
 
     if "start_date" in tenancy_fields:
-        tenancy.start_date = tenancy_fields["start_date"]
+        tenancy_obj.start_date = tenancy_fields["start_date"]
+
     if "end_date" in tenancy_fields:
-        tenancy.end_date = tenancy_fields["end_date"]
-    if "tenancy_status" in tenancy_fields:
-        tenancy.tenancy_status = tenancy_fields["tenancy_status"]
+        tenancy_obj.end_date = tenancy_fields["end_date"]
+
+    if "property_id" in tenancy_fields:
+        tenancy_obj.property_id = tenancy_fields["property_id"]
 
     db.session.commit()
-    return jsonify(tenancy_schema.dump(tenancy)), 200
+
+    return jsonify(tenancy_schema.dump(tenancy_obj)), 200
 
 # -------------------------
 # LINK a tenant to a tenancy

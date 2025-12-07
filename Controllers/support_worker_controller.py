@@ -67,43 +67,25 @@ def delete_support_worker(support_worker_id):
 # -------------------------
 @support_workers_bp.route("/<int:support_worker_id>/", methods=["PUT"])
 def update_support_worker(support_worker_id):
-    worker = db.get(SupportWorker, support_worker_id)
-    if not worker:
-        return abort(404, description="Support Worker not found")
 
     worker_fields = support_worker_schema.load(request.json, partial=True)
 
+    stmt = db.select(SupportWorker).filter_by(id=support_worker_id)
+    worker_obj = db.session.scalar(stmt)
+
+    if not worker_obj:
+        return abort(400, description="Support Worker does not exist")
+
     if "name" in worker_fields:
-        worker.name = worker_fields["name"]
-    if "phone" in worker_fields:
-        worker.phone = worker_fields["phone"]
+        worker_obj.name = worker_fields["name"]
+
     if "email" in worker_fields:
-        worker.email = worker_fields["email"]
+        worker_obj.email = worker_fields["email"]
+
+    if "phone" in worker_fields:
+        worker_obj.phone = worker_fields["phone"]
 
     db.session.commit()
-    return jsonify(support_worker_schema.dump(worker)), 200
 
-# -------------------------
-# OPTIONAL: Link a tenant to a support worker
-# -------------------------
-@support_workers_bp.route("/<int:support_worker_id>/link_tenant/<int:tenant_id>/", methods=["POST"])
-def link_tenant(support_worker_id, tenant_id):
-    worker = db.get(SupportWorker, support_worker_id)
-    if not worker:
-        return abort(404, description="Support Worker not found")
+    return jsonify(support_worker_schema.dump(worker_obj)), 200
 
-    # Check if link already exists
-    existing_link = db.session.scalar(
-        db.select(TenantSupportWorker)
-        .filter_by(support_worker_id=support_worker_id, tenant_id=tenant_id)
-    )
-    if existing_link:
-        return abort(400, description="Tenant already linked to this support worker")
-
-    new_link = TenantSupportWorker(
-        support_worker_id=support_worker_id,
-        tenant_id=tenant_id
-    )
-    db.session.add(new_link)
-    db.session.commit()
-    return jsonify({"message": f"Tenant {tenant_id} linked to Support Worker {support_worker_id}"}), 201

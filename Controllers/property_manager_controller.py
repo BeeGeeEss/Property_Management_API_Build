@@ -66,19 +66,27 @@ def delete_property_manager(property_manager_id):
 # -------------------------
 @property_managers_bp.route("/<int:property_manager_id>/", methods=["PUT"])
 def update_property_manager(property_manager_id):
-    stmt = db.select(PropertyManager).filter_by(id=property_manager_id)
-    manager = db.session.scalar(stmt)
-    if not manager:
-        return abort(404, description="Property Manager not found")
 
+    # Load partial input
     manager_fields = property_manager_schema.load(request.json, partial=True)
 
+    # Fetch existing record
+    stmt = db.select(PropertyManager).filter_by(id=property_manager_id)
+    manager_obj = db.session.scalar(stmt)
+
+    if not manager_obj:
+        return abort(400, description="Property Manager does not exist")
+
+    # Update fields safely
     if "name" in manager_fields:
-        manager.name = manager_fields["name"]
-    if "phone" in manager_fields:
-        manager.phone = manager_fields["phone"]
+        manager_obj.name = manager_fields["name"]
+
     if "email" in manager_fields:
-        manager.email = manager_fields["email"]
+        manager_obj.email = manager_fields["email"]
+
+    if "phone" in manager_fields:
+        manager_obj.phone = manager_fields["phone"]
 
     db.session.commit()
-    return jsonify(property_manager_schema.dump(manager)), 200
+
+    return jsonify(property_manager_schema.dump(manager_obj)), 200

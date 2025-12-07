@@ -72,7 +72,7 @@ def update_property(property_id):
     # Handle missing record
     if not property_obj:
         return abort(400, description="Property does not exist")
-
+    
     # Update fields if they were provided
     if "address" in property_fields:
         property_obj.address = property_fields["address"]
