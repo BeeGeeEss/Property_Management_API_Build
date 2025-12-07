@@ -33,6 +33,37 @@ def get_tenancy(tenancy_id):
     result = tenancy_schema.dump(tenancy_obj)
     # return the data in JSON format
     return jsonify(result)
+
+# -------------------------
+# GET tenancies from queries
+# -------------------------
+
+@tenancies_bp.route("/search", methods=["GET"])
+def search_tenancies():
+    # Base query
+    stmt = db.select(Tenancy)
+
+    # Optional filters
+    status = request.args.get("status")
+    start_date = request.args.get("start_date")
+    end_date = request.args.get("end_date")
+
+    if status:
+        stmt = stmt.filter(Tenancy.tenancy_status == status)
+
+    if start_date:
+        stmt = stmt.filter(Tenancy.start_date >= start_date)
+
+    if end_date:
+        stmt = stmt.filter(Tenancy.end_date <= end_date)
+
+    # Execute
+    tenancies = db.session.scalars(stmt).all()
+
+    # Serialize
+    result = tenancies_schema.dump(tenancies)
+    return jsonify(result), 200
+
 # -------------------------
 # CREATE a new tenancy
 # -------------------------

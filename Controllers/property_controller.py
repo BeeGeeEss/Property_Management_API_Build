@@ -85,20 +85,3 @@ def update_property(property_id):
 
     # Return updated property
     return jsonify(property_schema.dump(property_obj)), 200
-
-
-# @properties_bp.route("/<int:property_id>/", methods=["PUT"])
-# def update_property(property_id):
-#     property_obj = db.get(Property, property_id)
-#     if not property_obj:
-#         return abort(404, description="Property not found")
-
-#     property_fields = property_schema.load(request.json, partial=True)
-
-#     if "address" in property_fields:
-#         property_obj.address = property_fields["address"]
-#     if "property_manager_id" in property_fields:
-#         property_obj.property_manager_id = property_fields["property_manager_id"]
-
-#     db.session.commit()
-#     return jsonify(property_schema.dump(property_obj)), 200
