@@ -9,3 +9,20 @@ class Tenant(db.Model):
     date_of_birth = db.Column(db.Date, nullable=False)
     phone = db.Column(db.String(15))
     email = db.Column(db.String(50))
+
+     # Many-to-many: Tenant <-> Tenancy
+    tenancies = db.relationship(
+        "Tenancy",
+        secondary="tenant_tenancy",
+        back_populates="tenants",
+        passive_deletes=True
+    )
+
+    # Many-to-many: Tenant <-> SupportWorker
+    support_workers = db.relationship(
+        "SupportWorker",
+        secondary="tenant_support_worker",
+        back_populates="tenants",
+        passive_deletes=True
+    )
+

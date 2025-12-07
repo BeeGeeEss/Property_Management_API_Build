@@ -39,14 +39,14 @@ def get_support_worker(support_worker_id):
 def create_support_worker():
     worker_fields = support_worker_schema.load(request.json)
 
-    new_worker = SupportWorker(
-        name=worker_fields["name"],
-        phone=worker_fields.get("phone"),
-        email=worker_fields["email"]
-    )
-
+    new_worker = SupportWorker()
+    new_worker.name = worker_fields["name"]
+    new_worker.phone = worker_fields["phone"]
+    new_worker.email = worker_fields["email"]
+    # add to the database and commit
     db.session.add(new_worker)
     db.session.commit()
+    # return the competition in the response
     return jsonify(support_worker_schema.dump(new_worker)), 201
 
 # -------------------------

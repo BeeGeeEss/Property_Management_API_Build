@@ -162,8 +162,3 @@ def seed_db():
     db.session.commit()
     print("Table seeded")
 
-
-# @db_commands.cli.command("drop")
-# def drop_db():
-#     db.drop_all()
-#     print("Tables dropped!")

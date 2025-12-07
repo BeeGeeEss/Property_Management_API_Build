@@ -8,3 +8,11 @@ class SupportWorker(db.Model):
     name = db.Column(db.String(50), nullable=False)
     phone = db.Column(db.String(15))
     email = db.Column(db.String(50), nullable=False)
+
+# Many-to-many: SupportWorker <-> Tenant
+    tenants = db.relationship(
+        "Tenant",
+        secondary="tenant_support_worker",
+        back_populates="support_workers",
+        passive_deletes=True
+    )

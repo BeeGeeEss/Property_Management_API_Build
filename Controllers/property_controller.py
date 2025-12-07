@@ -36,12 +36,15 @@ def get_property(property_id):
 @properties_bp.route("/", methods=["POST"])
 def create_property():
     property_fields = property_schema.load(request.json)
-    new_property = Property(
-        address=property_fields["address"],
-        property_manager_id=property_fields.get("property_manager_id")
-    )
+    # Create a new property
+    new_property = Property()
+    new_property.address = property_fields["address"]
+    # add category's id
+    new_property.property_manager_id = property_fields["property_manager_id"]
+    # add to the database and commit
     db.session.add(new_property)
     db.session.commit()
+    # return the competition in the response
     return jsonify(property_schema.dump(new_property)), 201
 
 # -------------------------
