@@ -12,14 +12,14 @@ db_commands = Blueprint("db", __name__)
 @db_commands.cli.command("drop")
 def drop_db():
     db.drop_all()
-    print("Tables dropped!")
+    print("Tables dropped!⬇️")
 
 # create app's cli command named create, then run it in the terminal as "flask db create", 
 # it will invoke create_db function
 @db_commands.cli.command("create")
 def create_db():
     db.create_all()
-    print("Tables created!")
+    print("Tables created!✅")
 
 @db_commands.cli.command("seed")
 def seed_db():
@@ -160,5 +160,5 @@ def seed_db():
  
     # commit the changes
     db.session.commit()
-    print("Table seeded")
+    print("Table seeded!🌱")
 

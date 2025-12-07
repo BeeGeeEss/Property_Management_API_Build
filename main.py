@@ -9,13 +9,6 @@ load_dotenv()
 from Controllers import registerable_controllers
 from commands import db_commands
 
-
-# creating our database object! This allows us to use our ORM
-# db = SQLAlchemy()
-
-# creating our marshmallow object! This allows us to use schemas
-# ma = Marshmallow()
-
 def create_app():
     """Docstring"""
     # Creating the flask app object - this is the core of our app!
@@ -23,6 +16,7 @@ def create_app():
 
     # configuring our app:
     app.config.from_object("config.app_config")
+    app.json.sort_keys = False
 
     # initialising our database object with the flask app
     db.init_app(app)
@@ -37,8 +31,5 @@ def create_app():
     # import the controllers and activate the blueprints
     for blueprint in registerable_controllers:
         app.register_blueprint(blueprint)
-
-    # for controller in registerable_controllers:
-    #     app.register_blueprint(controller)
 
     return app

@@ -1,7 +1,10 @@
 from flask import Blueprint, jsonify, request, abort
+from sqlalchemy.orm import selectinload
 from extensions import db
 from Models.property import Property
+from Models.property_manager import PropertyManager
 from Schemas.property_schema import property_schema, properties_schema
+from Schemas.property_manager_schema import property_manager_schema, property_managers_schema
 
 # Blueprint definition
 properties_bp = Blueprint('properties', __name__, url_prefix="/properties")
@@ -31,6 +34,19 @@ def get_property(property_id):
     return jsonify(result)
 
 # -------------------------
+# GET properties & Property Managers Nested
+# -------------------------
+@properties_bp.route("/property_managers", methods=["GET"])
+def get_properties_managers():
+    # get all the categories from the database table
+    stmt = db.select(PropertyManager).options(selectinload(PropertyManager.properties))
+    managers = db.session.scalars(stmt)
+    # Convert the categories from the database into a JSON format and store them in result
+    result = property_managers_schema.dump(managers)
+    # return the data in JSON format
+    return jsonify(result)
+
+# -------------------------
 # CREATE a new property
 # -------------------------
 @properties_bp.route("/", methods=["POST"])
@@ -54,7 +70,7 @@ def create_property():
 def delete_property(property_id):
     property_obj = db.get(Property, property_id)
     if not property_obj:
-        return abort(404, description="Property not found")
+        return abort(404, description="Property not found ❌")
     db.session.delete(property_obj)
     db.session.commit()
     return jsonify(property_schema.dump(property_obj)), 200

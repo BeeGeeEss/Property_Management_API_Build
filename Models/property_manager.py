@@ -11,7 +11,7 @@ class PropertyManager(db.Model):
     # One-to-many: PropertyManager -> Property
     properties = db.relationship(
         "Property",
-        back_populates="manager",
+        back_populates="property_manager",
         cascade="all, delete",
         passive_deletes=True
     )
