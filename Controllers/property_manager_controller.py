@@ -22,11 +22,14 @@ def get_property_managers():
 @property_managers_bp.route("/<int:property_manager_id>/", methods=["GET"])
 def get_property_manager(property_manager_id):
     stmt = db.select(PropertyManager).filter_by(id=property_manager_id)
-    manager = db.session.scalar(stmt)
-    if not manager:
-        return abort(404, description="Property Manager not found")
-    return jsonify(property_manager_schema.dump(manager))
-
+    property_manager_obj = db.session.scalar(stmt)
+    #return an error if the competition doesn't exist
+    if not property_manager_obj:
+        return abort(400, description= "Property Manager does not exist")
+    # Convert the competitions from the database into a JSON format and store them in result
+    result = property_manager_schema.dump(property_manager_obj)
+    # return the data in JSON format
+    return jsonify(result)
 # -------------------------
 # CREATE a new property manager
 # -------------------------

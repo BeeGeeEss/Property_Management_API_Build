@@ -24,11 +24,15 @@ def get_tenancies():
 # -------------------------
 @tenancies_bp.route("/<int:tenancy_id>/", methods=["GET"])
 def get_tenancy(tenancy_id):
-    tenancy = db.get(Tenancy, tenancy_id)
-    if not tenancy:
-        return abort(404, description="Tenancy not found")
-    return jsonify(tenancy_schema.dump(tenancy))
-
+    stmt = db.select(Tenancy).filter_by(id=tenancy_id)
+    tenancy_obj = db.session.scalar(stmt)
+    #return an error if the competition doesn't exist
+    if not tenancy_obj:
+        return abort(400, description= "Tenancy does not exist")
+    # Convert the competitions from the database into a JSON format and store them in result
+    result = tenancy_schema.dump(tenancy_obj)
+    # return the data in JSON format
+    return jsonify(result)
 # -------------------------
 # CREATE a new tenancy
 # -------------------------

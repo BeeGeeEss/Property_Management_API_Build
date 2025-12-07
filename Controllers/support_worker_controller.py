@@ -22,10 +22,15 @@ def get_support_workers():
 # -------------------------
 @support_workers_bp.route("/<int:support_worker_id>/", methods=["GET"])
 def get_support_worker(support_worker_id):
-    worker = db.get(SupportWorker, support_worker_id)
-    if not worker:
-        return abort(404, description="Support Worker not found")
-    return jsonify(support_worker_schema.dump(worker))
+    stmt = db.select(SupportWorker).filter_by(id=support_worker_id)
+    support_worker_obj = db.session.scalar(stmt)
+    #return an error if the competition doesn't exist
+    if not support_worker_obj:
+        return abort(400, description= "Support Worker does not exist")
+    # Convert the competitions from the database into a JSON format and store them in result
+    result = support_worker_schema.dump(support_worker_obj)
+    # return the data in JSON format
+    return jsonify(result)
 
 # -------------------------
 # CREATE a new support worker
