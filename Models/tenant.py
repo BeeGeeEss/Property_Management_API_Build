@@ -10,19 +10,16 @@ class Tenant(db.Model):
     phone = db.Column(db.String(15))
     email = db.Column(db.String(50))
 
-     # Many-to-many: Tenant <-> Tenancy
-    tenancies = db.relationship(
-        "Tenancy",
-        secondary="tenant_tenancy",
-        back_populates="tenants",
-        passive_deletes=True
+    # relationship to TenantTenancy
+    tenant_tenancy = db.relationship(
+        "TenantTenancy",
+        back_populates="tenant",
+        cascade="all, delete-orphan"
     )
-
-    # Many-to-many: Tenant <-> SupportWorker
-    support_workers = db.relationship(
-        "SupportWorker",
-        secondary="tenant_support_worker",
-        back_populates="tenants",
-        passive_deletes=True
+    
+    # relationship to TenantSupportWorker
+    tenant_support_worker = db.relationship(
+        "TenantSupportWorker",
+        back_populates="tenant",
+        cascade="all, delete-orphan"
     )
-

@@ -10,9 +10,8 @@ class SupportWorker(db.Model):
     email = db.Column(db.String(50), nullable=False)
 
 # Many-to-many: SupportWorker <-> Tenant
-    tenants = db.relationship(
-        "Tenant",
-        secondary="tenant_support_worker",
-        back_populates="support_workers",
-        passive_deletes=True
+    tenant_support_worker = db.relationship(
+        "TenantSupportWorker",
+        back_populates="support_worker",
+        cascade="all, delete-orphan"
     )

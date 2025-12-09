@@ -1,11 +1,13 @@
-from extensions import db
-from flask import Blueprint
 from datetime import date
+from flask import Blueprint
+from extensions import db
 from Models.property_manager import PropertyManager
 from Models.property import Property
 from Models.support_worker import SupportWorker
 from Models.tenancy import Tenancy
 from Models.tenant import Tenant
+from Models.tenant_tenancy import TenantTenancy
+from Models.tenant_support_worker import TenantSupportWorker
 
 db_commands = Blueprint("db", __name__)
 
@@ -14,7 +16,7 @@ def drop_db():
     db.drop_all()
     print("Tables dropped!⬇️")
 
-# create app's cli command named create, then run it in the terminal as "flask db create", 
+# create app's cli command named create, then run it in the terminal as "flask db create".
 # it will invoke create_db function
 @db_commands.cli.command("create")
 def create_db():
@@ -157,8 +159,55 @@ def seed_db():
         email="jupiter.sun@gmail.com"
     )
     db.session.add(tenant3)
- 
+    db.session.commit()
+
+    # SEED TENANT_TENANCY
+
+    tenant_tenancy1 = TenantTenancy(
+        rank=1,
+        tenant=tenant1,
+        tenancy=tenancy1
+    )
+    db.session.add(tenant_tenancy1)
+
+    tenant_tenancy2 = TenantTenancy(
+        rank=2,
+        tenant=tenant2,
+        tenancy=tenancy2
+    )
+    db.session.add(tenant_tenancy2)
+
+    tenant_tenancy3 = TenantTenancy(
+        rank=3,
+        tenant=tenant3,
+        tenancy=tenancy3
+    )
+    db.session.add(tenant_tenancy3)
+
+
+    # SEED TENANT_SUPPORT_WORKER
+
+    tenant_support_worker1 = TenantSupportWorker(
+        rank=1,
+        tenant=tenant1,
+        support_worker=support_worker1
+    )
+    db.session.add(tenant_support_worker1)
+
+    tenant_support_worker2 = TenantSupportWorker(
+        rank=2,
+        tenant=tenant2,
+        support_worker=support_worker2
+    )
+    db.session.add(tenant_support_worker2)
+
+    tenant_support_worker3 = TenantSupportWorker(
+        rank=3,
+        tenant=tenant3,
+        support_worker=support_worker3
+    )
+    db.session.add(tenant_support_worker3)
+
     # commit the changes
     db.session.commit()
     print("Table seeded!🌱")
-

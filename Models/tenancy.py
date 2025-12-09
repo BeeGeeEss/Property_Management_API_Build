@@ -14,9 +14,9 @@ class Tenancy(db.Model):
     property = db.relationship("Property", back_populates="tenancies")
 
     # Many-to-many: Tenancy <-> Tenant
-    tenants = db.relationship(
-        "Tenant",
-        secondary="tenant_tenancy",
-        back_populates="tenancies",
-        passive_deletes=True
+    # relationship to TenantTenancy
+    tenant_tenancy = db.relationship(
+        "TenantTenancy",
+        back_populates="tenancy",
+        cascade="all, delete-orphan"
     )

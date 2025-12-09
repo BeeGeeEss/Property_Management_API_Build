@@ -6,14 +6,15 @@ class TenantSupportWorkerSchema(ma.SQLAlchemySchema):
     class Meta:
         model = TenantSupportWorker
         load_instance = False
+        ordered = True
 
     id = ma.auto_field()
     tenant_id = ma.auto_field(load_only=True)
     support_worker_id = ma.auto_field(load_only=True)
 
     # Example nested field (one-to-many or many-to-one)
-    tenant = fields.Nested("TenantSchema", only=["name"])
-    support_worker = fields.Nested("SupportWorkerSchema", only=["name"])
+    tenant = fields.Nested("TenantSchema", only=["id", "name"])
+    support_worker = fields.Nested("SupportWorkerSchema", only=["id", "name"])
 
 
 tenant_support_worker_schema = TenantSupportWorkerSchema()
