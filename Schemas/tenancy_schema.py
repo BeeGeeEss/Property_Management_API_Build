@@ -17,6 +17,7 @@ class TenancySchema(ma.SQLAlchemySchema):
 class TenancyWithPropertySchema(TenancySchema):
     model = Tenancy
     load_instance = True
+    ordered = True
 
     id = ma.auto_field()
     property = fields.Nested("PropertySchema", only=["id", "address"])

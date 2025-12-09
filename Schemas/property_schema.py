@@ -16,6 +16,7 @@ class PropertyWithManagerSchema(ma.SQLAlchemySchema):
     class Meta:
         model = Property
         load_instance = True
+        ordered = True
 
     id = ma.auto_field()
     address = ma.auto_field()

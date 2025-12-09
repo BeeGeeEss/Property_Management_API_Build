@@ -7,6 +7,7 @@ from Models.property import Property
 from Models.tenant_tenancy import TenantTenancy
 from Schemas.tenancy_schema import tenancy_schema, tenancies_schema, tenancies_with_property_schema, tenancies_with_tenants_schema
 
+# Blueprint definition
 tenancies_bp = Blueprint(
     'tenancies', __name__, url_prefix="/tenancies"
 )
@@ -68,7 +69,6 @@ def search_tenancies():
 # -------------------------
 # GET Tenancies & Properties Nested
 # -------------------------
-# get all the categories from the database table
 @tenancies_bp.route("/properties", methods=["GET"])
 def get_tenancies_with_properties():
     stmt = db.select(Tenancy).options(selectinload(Tenancy.property))
@@ -76,7 +76,7 @@ def get_tenancies_with_properties():
     return jsonify(tenancies_with_property_schema.dump(tenancies))
 
 # -------------------------
-# GET Tenancies & Tenants Nested
+# GET tenancies & tenants
 # -------------------------
 @tenancies_bp.route("/tenants", methods=["GET"])
 def get_tenancies_with_tenants():

@@ -6,8 +6,9 @@ from Models.tenancy import Tenancy
 from Models.support_worker import SupportWorker
 from Models.tenant_tenancy import TenantTenancy
 from Models.tenant_support_worker import TenantSupportWorker
-from Schemas.tenant_schema import tenant_schema, tenants_schema, tenants_with_tenancies_schema
+from Schemas.tenant_schema import tenant_schema, tenants_schema, tenants_with_tenancies_schema, tenants_with_support_worker_schema
 
+# Blueprint definition
 tenants_bp = Blueprint(
     'tenants', __name__, url_prefix="/tenants"
 )
@@ -37,13 +38,24 @@ def get_tenant(tenant_id):
     return jsonify(result)
 
 # -------------------------
-# GET Tenants & Tenancies
+# GET tenants & tenancies
 # -------------------------
 @tenants_bp.route("/tenancies", methods=["GET"])
 def get_tenants_with_tenancies():
     stmt = db.select(Tenant).options(selectinload(Tenant.tenancies))
     tenants = db.session.scalars(stmt).all()
     return jsonify(tenants_with_tenancies_schema.dump(tenants))
+
+# -------------------------
+# GET tenants & support workers
+# -------------------------
+@tenants_bp.route("/support_workers", methods=["GET"])
+def get_tenants_support_workers():
+    stmt = db.select(Tenant).options(
+        selectinload(Tenant.support_workers)
+    )
+    tenants = db.session.execute(stmt).scalars().all()
+    return tenants_with_support_worker_schema.dump(tenants), 200
 
 # -------------------------
 # CREATE a new tenant
@@ -104,6 +116,7 @@ def update_tenant(tenant_id):
     db.session.commit()
 
     return jsonify(tenant_schema.dump(tenant_obj)), 200
+
 # -------------------------
 # LINK tenant to tenancy
 # -------------------------

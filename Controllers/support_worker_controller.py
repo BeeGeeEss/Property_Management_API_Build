@@ -1,9 +1,10 @@
 from flask import Blueprint, jsonify, request, abort
+from sqlalchemy.orm import selectinload
 from extensions import db
 from Models.support_worker import SupportWorker
-from Models.tenant_support_worker import TenantSupportWorker
-from Schemas.support_worker_schema import support_worker_schema, support_workers_schema
+from Schemas.support_worker_schema import support_worker_schema, support_workers_schema, support_workers_with_tenants_schema
 
+# Blueprint definition
 support_workers_bp = Blueprint(
     'support_workers', __name__, url_prefix="/support_workers"
 )
@@ -31,6 +32,17 @@ def get_support_worker(support_worker_id):
     result = support_worker_schema.dump(support_worker_obj)
     # return the data in JSON format
     return jsonify(result)
+
+# -------------------------
+# GET a support workers & tenants
+# -------------------------
+@support_workers_bp.route("/tenants", methods=["GET"])
+def get_support_workers_tenants():
+    stmt = db.select(SupportWorker).options(
+        selectinload(SupportWorker.tenants)
+    )
+    workers = db.session.execute(stmt).scalars().all()
+    return support_workers_with_tenants_schema.dump(workers), 200
 
 # -------------------------
 # CREATE a new support worker

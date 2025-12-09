@@ -10,9 +10,11 @@ class TenantSupportWorker(db.Model):
     tenant_id = db.Column(db.Integer, db.ForeignKey("tenant.id", ondelete="CASCADE"), nullable=False)
     tenant = db.relationship(
         "Tenant",
-        back_populates="tenant_support_worker"
+        back_populates="tenant_support_worker",
+        overlaps="tenants, support_workers"
     )
     support_worker = db.relationship(
         "SupportWorker",
-        back_populates="tenant_support_worker"
+        back_populates="tenant_support_worker",
+        overlaps="tenants, support_workers"
     )

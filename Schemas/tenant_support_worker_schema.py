@@ -1,5 +1,5 @@
-from extensions import ma
 from marshmallow import fields
+from extensions import ma
 from Models.tenant_support_worker import TenantSupportWorker
 
 class TenantSupportWorkerSchema(ma.SQLAlchemySchema):
@@ -18,4 +18,4 @@ class TenantSupportWorkerSchema(ma.SQLAlchemySchema):
 
 
 tenant_support_worker_schema = TenantSupportWorkerSchema()
-tenant_support_workers_schema = TenantSupportWorkerSchema(many=True)
+tenants_support_worker_schema = TenantSupportWorkerSchema(many=True)

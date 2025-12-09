@@ -1,5 +1,5 @@
-from extensions import ma
 from marshmallow import fields
+from extensions import ma
 from Models.tenant_tenancy import TenantTenancy
 
 class TenantTenancySchema(ma.SQLAlchemySchema):

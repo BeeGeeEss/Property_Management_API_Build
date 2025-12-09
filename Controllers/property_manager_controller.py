@@ -4,6 +4,7 @@ from extensions import db
 from Models.property_manager import PropertyManager
 from Schemas.property_manager_schema import property_manager_schema, property_managers_schema, property_managers_with_properties_schema
 
+# Blueprint definition
 property_managers_bp = Blueprint(
     'property_managers', __name__, url_prefix="/property_managers"
 )
@@ -33,7 +34,7 @@ def get_property_manager(property_manager_id):
     return jsonify(result)
 
 # -------------------------
-# GET Property Managers & Properties
+# GET property managers & properties
 # -------------------------
 @property_managers_bp.route("/properties", methods=["GET"])
 def get_property_managers_with_properties():
@@ -57,7 +58,6 @@ def create_property_manager():
     db.session.commit()
     # return the competition in the response
     return jsonify(property_manager_schema.dump(new_manager)), 201
-
 
 # -------------------------
 # DELETE a property manager by property_manager_id

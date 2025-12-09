@@ -17,9 +17,9 @@ def get_properties():
     properties_list = db.session.scalars(stmt)
     return jsonify(properties_schema.dump(properties_list))
 
-# -------------------------
+# --------------------------------------------
 # GET a single property by property_id
-# -------------------------
+# --------------------------------------------
 @properties_bp.route("/<int:property_id>/", methods=["GET"])
 def get_property(property_id):
     stmt = db.select(Property).filter_by(id=property_id)
@@ -33,7 +33,7 @@ def get_property(property_id):
     return jsonify(result)
 
 # -------------------------
-# GET properties & Property Managers Nested
+# GET properties & property managers nested
 # -------------------------
 @properties_bp.route("/property_managers", methods=["GET"])
 def get_properties_with_managers():

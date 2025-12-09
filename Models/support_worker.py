@@ -15,3 +15,10 @@ class SupportWorker(db.Model):
         back_populates="support_worker",
         cascade="all, delete-orphan"
     )
+
+    tenants = db.relationship(
+        "Tenant",
+        secondary="tenant_support_worker",
+        back_populates="support_workers",
+        overlaps="tenant_support_worker"
+    )

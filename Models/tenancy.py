@@ -24,5 +24,6 @@ class Tenancy(db.Model):
     tenants = db.relationship(
         "Tenant",
         secondary="tenant_tenancy",
-        back_populates="tenancies"
+        back_populates="tenancies",
+        overlaps="tenant_tenancy" 
     )
