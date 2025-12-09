@@ -26,12 +26,13 @@ class TenancyWithTenantsSchema(ma.SQLAlchemySchema):
     class Meta:
         model = Tenancy
         load_instance = False
+        ordered = True
 
     id = ma.auto_field()
     start_date = ma.auto_field()
     end_date = ma.auto_field()
     tenancy_status = ma.auto_field()
-    tenants = fields.Nested("TenantSchema", only=["id", "name"])
+    tenants = fields.List(fields.Nested("TenantSchema", only=["id", "name"]))
 
 tenancy_schema = TenancySchema()
 tenancies_schema = TenancySchema(many=True)

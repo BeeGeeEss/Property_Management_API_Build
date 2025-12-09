@@ -1,7 +1,8 @@
 from flask import Blueprint, jsonify, request, abort
+from sqlalchemy.orm import selectinload
 from extensions import db
 from Models.property_manager import PropertyManager
-from Schemas.property_manager_schema import property_manager_schema, property_managers_schema
+from Schemas.property_manager_schema import property_manager_schema, property_managers_schema, property_managers_with_properties_schema
 
 property_managers_bp = Blueprint(
     'property_managers', __name__, url_prefix="/property_managers"
@@ -30,6 +31,16 @@ def get_property_manager(property_manager_id):
     result = property_manager_schema.dump(property_manager_obj)
     # return the data in JSON format
     return jsonify(result)
+
+# -------------------------
+# GET Property Managers & Properties
+# -------------------------
+@property_managers_bp.route("/properties", methods=["GET"])
+def get_property_managers_with_properties():
+    stmt = db.select(PropertyManager).options(selectinload(PropertyManager.properties))
+    managers = db.session.scalars(stmt).all()
+    return jsonify(property_managers_with_properties_schema.dump(managers))
+
 # -------------------------
 # CREATE a new property manager
 # -------------------------

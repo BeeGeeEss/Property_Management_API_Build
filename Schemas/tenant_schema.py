@@ -6,6 +6,7 @@ class TenantSchema(ma.SQLAlchemySchema):
     class Meta:
         model = Tenant
         load_instance = False
+        ordered = True
 
     id = ma.auto_field()
     name = ma.auto_field()
@@ -17,12 +18,13 @@ class TenantWithTenanciesSchema(ma.SQLAlchemySchema):
     class Meta:
         model = Tenant
         load_instance = False
+        ordered = True
 
     id = ma.auto_field()
     name = ma.auto_field()
     phone = ma.auto_field()
     email = ma.auto_field()
-    tenancies = fields.List(fields.Nested("TenancySchema"))
+    tenancies = fields.List(fields.Nested("TenancySchema", only=["id","start_date","end_date","tenancy_status"]))
 
 tenant_schema = TenantSchema()
 tenants_schema = TenantSchema(many=True)

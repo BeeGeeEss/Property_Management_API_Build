@@ -80,8 +80,9 @@ def get_tenancies_with_properties():
 # -------------------------
 @tenancies_bp.route("/tenants", methods=["GET"])
 def get_tenancies_with_tenants():
-    tenancies = Tenancy.query.options(selectinload(Tenancy.tenants)).all()
-    return tenancies_with_tenants_schema.dump(tenancies, many=True)
+    stmt = db.select(Tenancy).options(selectinload(Tenancy.tenants))
+    tenancies = db.session.scalars(stmt).all()
+    return jsonify(tenancies_with_tenants_schema.dump(tenancies))
 
 # -------------------------
 # CREATE a new tenancy
