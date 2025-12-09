@@ -1,11 +1,12 @@
 from flask import Blueprint, jsonify, request, abort
+from sqlalchemy.orm import selectinload
 from extensions import db
 from Models.tenant import Tenant
 from Models.tenancy import Tenancy
 from Models.support_worker import SupportWorker
 from Models.tenant_tenancy import TenantTenancy
 from Models.tenant_support_worker import TenantSupportWorker
-from Schemas.tenant_schema import tenant_schema, tenants_schema
+from Schemas.tenant_schema import tenant_schema, tenants_schema, tenant_with_tenancies_schema
 
 tenants_bp = Blueprint(
     'tenants', __name__, url_prefix="/tenants"
@@ -34,6 +35,14 @@ def get_tenant(tenant_id):
     result = tenant_schema.dump(tenant_obj)
     # return the data in JSON format
     return jsonify(result)
+
+# -------------------------
+# GET Tenants & Tenancies
+# -------------------------
+@tenants_bp.route("/tenancies", methods=["GET"])
+def get_tenants_with_tenancies():
+    tenants = Tenant.query.options(selectinload(Tenant.tenancies)).all()
+    return tenant_with_tenancies_schema.dump(tenants, many=True)
 
 # -------------------------
 # CREATE a new tenant

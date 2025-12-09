@@ -1,10 +1,11 @@
 from flask import Blueprint, jsonify, request, abort
+from sqlalchemy.orm import selectinload
 from extensions import db
 from Models.tenancy import Tenancy
 from Models.tenant import Tenant
 from Models.property import Property
 from Models.tenant_tenancy import TenantTenancy
-from Schemas.tenancy_schema import tenancy_schema, tenancies_schema
+from Schemas.tenancy_schema import tenancy_schema, tenancies_schema, tenancies_with_property_schema, tenancies_with_tenants_schema
 
 tenancies_bp = Blueprint(
     'tenancies', __name__, url_prefix="/tenancies"
@@ -63,6 +64,24 @@ def search_tenancies():
     # Serialize
     result = tenancies_schema.dump(tenancies)
     return jsonify(result), 200
+
+# -------------------------
+# GET Tenancies & Properties Nested
+# -------------------------
+# get all the categories from the database table
+@tenancies_bp.route("/properties", methods=["GET"])
+def get_tenancies_with_properties():
+    stmt = db.select(Tenancy).options(selectinload(Tenancy.property))
+    tenancies = db.session.scalars(stmt)
+    return jsonify(tenancies_with_property_schema.dump(tenancies))
+
+# -------------------------
+# GET Tenancies & Tenants Nested
+# -------------------------
+@tenancies_bp.route("/tenants", methods=["GET"])
+def get_tenancies_with_tenants():
+    tenancies = Tenancy.query.options(selectinload(Tenancy.tenants)).all()
+    return tenancies_with_tenants_schema.dump(tenancies, many=True)
 
 # -------------------------
 # CREATE a new tenancy

@@ -1,13 +1,12 @@
 from extensions import ma
-from marshmallow import fields
 from Models.property_manager import PropertyManager
 
 class PropertyManagerSchema(ma.SQLAlchemySchema):
-    ordered = True
-    properties = fields.List(fields.Nested("PropertySchema", exclude=["property_manager"]))
+    
     class Meta:
         model = PropertyManager
         load_instance = False
+        ordered = True
 
     id = ma.auto_field()
     name = ma.auto_field()
