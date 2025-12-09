@@ -20,3 +20,9 @@ class Tenancy(db.Model):
         back_populates="tenancy",
         cascade="all, delete-orphan"
     )
+
+    tenants = db.relationship(
+        "Tenant",
+        secondary="tenant_tenancy",
+        back_populates="tenancies"
+    )
