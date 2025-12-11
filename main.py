@@ -1,34 +1,55 @@
+"""
+Main application entry point for the Property Management API.
+
+This module:
+- Loads environment variables
+- Creates and configures the Flask application instance
+- Initializes extensions (SQLAlchemy, Marshmallow)
+- Registers CLI commands
+- Registers all controller blueprints
+
+"""
+
 from flask import Flask
-from extensions import db, ma
-# from flask_sqlalchemy import SQLAlchemy
-# from flask_marshmallow import Marshmallow
-
 from dotenv import load_dotenv
-load_dotenv()
 
+# Third party extensions
+from extensions import db, ma
+
+# Application Modules
 from Controllers import registerable_controllers
 from commands import db_commands
 
+# Load variables from the .env file (e.g., database credentials)
+load_dotenv()
+
+
 def create_app():
-    """Docstring"""
-    # Creating the flask app object - this is the core of our app!
+    """Create and configure the Flask application instance.
+
+    Responsibilities:
+        - Initialize the Flask app using the factory pattern
+        - Load configuration settings (from config.app_config)
+        - Initialize database and serialization extensions
+        - Register CLI command blueprints
+        - Register all controller blueprints for routing
+
+    Returns:
+        Flask: The fully configured Flask application instance."""
     app = Flask(__name__)
 
-    # configuring our app:
+    # Load application configuration settings
     app.config.from_object("config.app_config")
     app.json.sort_keys = False
 
-    # initialising our database object with the flask app
+    # Initialize extensions
     db.init_app(app)
-
-    # initialising our marshmallow object with the flask app
     ma.init_app(app)
 
-    # Import the database CLI commands and register them as a blueprint.
-    # This allows you to run commands like "flask db create", "flask db drop".
+    # Register custom database CLI commands (flask db create, db drop, etc.)
     app.register_blueprint(db_commands)
 
-    # import the controllers and activate the blueprints
+    # Register all API blueprints from the controllers package
     for blueprint in registerable_controllers:
         app.register_blueprint(blueprint)
 
