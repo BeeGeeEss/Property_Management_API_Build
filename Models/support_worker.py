@@ -1,15 +1,32 @@
+# Application module
 from extensions import db
 
 class SupportWorker(db.Model):
-    # define the table name for the db
+    """
+    SupportWorker Model
+
+    Represents a support worker in the Property Management system.
+
+    Attributes:
+        id (int): Primary key.
+        name (str): Full name of the support worker.
+        phone (str): Contact phone number (optional).
+        email (str): Contact email address.
+        tenant_support_worker (list[TenantSupportWorker]): Association table for many-to-many with tenants.
+        tenants (list[Tenant]): Many-to-many relationship to Tenant.
+
+    Relationships:
+        - Each SupportWorker can be linked to multiple Tenants via TenantSupportWorker.
+    """
+
     __tablename__= "support_worker"
-    # Set the primary key, we need to define that each attribute is also a column in the db table, remember "db" is the object we created in the previous step.
+
     id = db.Column(db.Integer,primary_key=True)
     name = db.Column(db.String(50), nullable=False)
     phone = db.Column(db.String(15))
     email = db.Column(db.String(50), nullable=False)
 
-# Many-to-many: SupportWorker <-> Tenant
+    # Many-to-many: SupportWorker <-> Tenant through TenantSupportWorker
     tenant_support_worker = db.relationship(
         "TenantSupportWorker",
         back_populates="support_worker",

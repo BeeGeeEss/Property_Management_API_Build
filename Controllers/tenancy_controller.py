@@ -1,51 +1,72 @@
+"""
+Tenancy Controller
+
+Handles all routes related to Tenancy resources, including:
+- Retrieving all tenancies
+- Retrieving a single tenancy
+- Searching tenancies by query parameters
+- Retrieving tenancies with nested properties or tenants
+- Creating, updating, and deleting tenancies
+- Linking tenants to tenancies
+
+"""
+
 from flask import Blueprint, jsonify, request, abort
 from sqlalchemy.orm import selectinload
+
+# Application modules
 from extensions import db
 from Models.tenancy import Tenancy
 from Models.tenant import Tenant
 from Models.property import Property
 from Models.tenant_tenancy import TenantTenancy
-from Schemas.tenancy_schema import tenancy_schema, tenancies_schema, tenancies_with_property_schema, tenancies_with_tenants_schema
+from Schemas.tenancy_schema import (
+    tenancy_schema,
+    tenancies_schema,
+    tenancies_with_property_schema,
+    tenancies_with_tenants_schema
+)
 
-# Blueprint definition
+# Blueprint setup
 tenancies_bp = Blueprint(
     'tenancies', __name__, url_prefix="/tenancies"
 )
 
-# -------------------------
-# GET all tenancies
-# -------------------------
+# ============================================================
+# GET: All Tenancies
+# ============================================================
 @tenancies_bp.route("/", methods=["GET"])
 def get_tenancies():
+    """Return a list of all tenancies."""
     stmt = db.select(Tenancy)
     tenancies_list = db.session.scalars(stmt)
     return jsonify(tenancies_schema.dump(tenancies_list))
 
-# -------------------------
-# GET a single tenancy by tenancy_id
-# -------------------------
+# ============================================================
+# GET: Single Tenancy by ID
+# ============================================================
 @tenancies_bp.route("/<int:tenancy_id>/", methods=["GET"])
 def get_tenancy(tenancy_id):
+    """Return a single tenancy by ID, or 404 if not found."""
     stmt = db.select(Tenancy).filter_by(id=tenancy_id)
     tenancy_obj = db.session.scalar(stmt)
-    #return an error if the competition doesn't exist
+
     if not tenancy_obj:
         return abort(400, description= "Tenancy does not exist")
-    # Convert the competitions from the database into a JSON format and store them in result
+
     result = tenancy_schema.dump(tenancy_obj)
-    # return the data in JSON format
+
     return jsonify(result)
 
-# -------------------------
-# GET tenancies from queries
-# -------------------------
+# ============================================================
+# GET: Search Tenancies
+# ============================================================
 
 @tenancies_bp.route("/search", methods=["GET"])
 def search_tenancies():
-    # Base query
+    """Return tenancies matching optional query parameters: status, start_date, end_date."""
     stmt = db.select(Tenancy)
 
-    # Optional filters
     status = request.args.get("status")
     start_date = request.args.get("start_date")
     end_date = request.args.get("end_date")
@@ -59,39 +80,41 @@ def search_tenancies():
     if end_date:
         stmt = stmt.filter(Tenancy.end_date <= end_date)
 
-    # Execute
     tenancies = db.session.scalars(stmt).all()
 
-    # Serialize
+
     result = tenancies_schema.dump(tenancies)
     return jsonify(result), 200
 
-# -------------------------
-# GET Tenancies & Properties Nested
-# -------------------------
+# ============================================================
+# GET: Tenancies with Properties
+# ============================================================
 @tenancies_bp.route("/properties", methods=["GET"])
 def get_tenancies_with_properties():
+    """Return all tenancies including their associated properties."""
     stmt = db.select(Tenancy).options(selectinload(Tenancy.property))
     tenancies = db.session.scalars(stmt)
     return jsonify(tenancies_with_property_schema.dump(tenancies))
 
-# -------------------------
-# GET tenancies & tenants
-# -------------------------
+# ============================================================
+# GET: Tenancies with Tenants
+# ============================================================
 @tenancies_bp.route("/tenants", methods=["GET"])
 def get_tenancies_with_tenants():
+    """Return all tenancies including their associated tenants."""
     stmt = db.select(Tenancy).options(selectinload(Tenancy.tenants))
     tenancies = db.session.scalars(stmt).all()
     return jsonify(tenancies_with_tenants_schema.dump(tenancies))
 
-# -------------------------
-# CREATE a new tenancy
-# -------------------------
+# ============================================================
+# POST: Create a New Tenancy
+# ============================================================
 @tenancies_bp.route("/", methods=["POST"])
 def create_tenancy():
+    """Create a new tenancy and return it."""
     tenancy_fields = tenancy_schema.load(request.json)
 
-    # Validate property if property_id is provided
+    # Validate property if provided
     property_obj = None
     if "property_id" in tenancy_fields:
         property_obj = db.get(Property, tenancy_fields["property_id"])
@@ -109,12 +132,14 @@ def create_tenancy():
     db.session.commit()
     return jsonify(tenancy_schema.dump(new_tenancy)), 201
 
-# -------------------------
-# DELETE a tenancy by tenancy_id
-# -------------------------
+# ============================================================
+# DELETE: Delete Tenancy by ID
+# ============================================================
 @tenancies_bp.route("/<int:tenancy_id>/", methods=["DELETE"])
 def delete_tenancy(tenancy_id):
+    """Delete a tenancy by ID and return the deleted record."""
     tenancy = db.get(Tenancy, tenancy_id)
+
     if not tenancy:
         return abort(404, description="Tenancy not found")
 
@@ -122,19 +147,19 @@ def delete_tenancy(tenancy_id):
     db.session.commit()
     return jsonify(tenancy_schema.dump(tenancy)), 200
 
-# -------------------------
-# UPDATE a tenancy by tenancy_id
-# -------------------------
+# ============================================================
+# PUT: Update Tenancy by ID
+# ============================================================
 @tenancies_bp.route("/<int:tenancy_id>/", methods=["PUT"])
 def update_tenancy(tenancy_id):
-
+    """Update an existing tenancy with provided fields."""
     tenancy_fields = tenancy_schema.load(request.json, partial=True)
 
     stmt = db.select(Tenancy).filter_by(id=tenancy_id)
     tenancy_obj = db.session.scalar(stmt)
 
     if not tenancy_obj:
-        return abort(400, description="Tenancy does not exist")
+        return abort(404, description="Tenancy does not exist")
 
     if "start_date" in tenancy_fields:
         tenancy_obj.start_date = tenancy_fields["start_date"]
@@ -149,11 +174,16 @@ def update_tenancy(tenancy_id):
 
     return jsonify(tenancy_schema.dump(tenancy_obj)), 200
 
-# -------------------------
-# LINK a tenant to a tenancy
-# -------------------------
+# ============================================================
+# POST: Link a Tenant to a Tenancy
+# ============================================================
 @tenancies_bp.route("/<int:tenancy_id>/link_tenant/<int:tenant_id>/", methods=["POST"])
 def link_tenant(tenancy_id, tenant_id):
+    """
+    Link a tenant to a tenancy. Prevents duplicate links.
+
+    Returns a success message if link is created, otherwise an error.
+    """
     tenancy = db.get(Tenancy, tenancy_id)
     tenant = db.get(Tenant, tenant_id)
 

@@ -107,7 +107,7 @@ def update_property(property_id):
     property_obj = db.session.scalar(stmt)
 
     if not property_obj:
-        return abort(400, description="Property does not exist")
+        return abort(404, description="Property does not exist")
 
     # Apply updates only if provided
     if "address" in property_fields:

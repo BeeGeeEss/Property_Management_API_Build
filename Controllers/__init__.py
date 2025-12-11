@@ -1,3 +1,12 @@
+"""
+Controllers Package
+
+This module aggregates all individual controller blueprints for the
+Property Management API. It allows the main application to register
+all controllers easily without importing them individually.
+
+"""
+
 from Controllers.property_controller import properties_bp
 from Controllers.property_manager_controller import property_managers_bp
 from Controllers.support_worker_controller import support_workers_bp

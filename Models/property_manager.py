@@ -1,6 +1,23 @@
+# Application module
 from extensions import db
 
 class PropertyManager(db.Model):
+    """
+    PropertyManager Model
+
+    Represents a property manager in the Property Management system.
+
+    Attributes:
+        id (int): Primary key.
+        name (str): Full name of the property manager.
+        phone (str): Contact phone number.
+        email (str): Contact email address.
+        properties (list[Property]): One-to-many relationship with Property.
+
+    Relationships:
+        - One PropertyManager can manage multiple Properties.
+
+    """
     __tablename__ = "property_manager"
 
     id = db.Column(db.Integer, primary_key=True)
