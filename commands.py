@@ -1,5 +1,19 @@
+"""
+Database CLI commands for Flask app.
+
+Provides commands to:
+- drop all tables
+- create all tables
+- seed the database with initial data
+
+"""
+# Standard library imports
 from datetime import date
+
+# Third-party imports
 from flask import Blueprint
+
+# Application module
 from extensions import db
 from Models.property_manager import PropertyManager
 from Models.property import Property
@@ -9,10 +23,12 @@ from Models.tenant import Tenant
 from Models.tenant_tenancy import TenantTenancy
 from Models.tenant_support_worker import TenantSupportWorker
 
+# Blueprint for database commands
 db_commands = Blueprint("db", __name__)
 
 @db_commands.cli.command("drop")
 def drop_db():
+    """Drop all tables in the database."""
     db.drop_all()
     print("Tables dropped!⬇️")
 
@@ -20,48 +36,55 @@ def drop_db():
 # it will invoke create_db function
 @db_commands.cli.command("create")
 def create_db():
+    """Create all tables in the database."""
     db.create_all()
     print("Tables created!✅")
 
 @db_commands.cli.command("seed")
 def seed_db():
+    """
+    Seed the database with initial data.
+
+    Seeds the following tables:
+    - PropertyManager
+    - Property
+    - SupportWorker
+    - Tenancy
+    - Tenant
+    - TenantTenancy
+    - TenantSupportWorker
+    """
     # SEED PROPERTY MANAGER
-    # create the PropertyManager object
     property_manager1 = PropertyManager(
-        # set the attributes, not the id, SQLAlchemy will manage that for us
-        name="Rachael Ruhs",
+
+        name="Janice Justice",
         phone="0400001001",
-        email="RR1@CPM.org"
+        email="JJ1@CPM.org"
     )
-    # Add the object as a new row to the table
     db.session.add(property_manager1)
 
     property_manager2 = PropertyManager(
-        # set the attributes, not the id, SQLAlchemy will manage that for us
-        name="Justine Gait",
+
+        name="Rita Philbara",
         phone="0400002002",
-        email="JG2@CPM.org"
+        email="RP2@CPM.org"
     )
-    # Add the object as a new row to the table
     db.session.add(property_manager2)
 
     property_manager3 = PropertyManager(
-        # set the attributes, not the id, SQLAlchemy will manage that for us
-        name="Ange Clegg",
+
+        name="Angel Custers",
         phone="0400003003",
         email="AC3@CPM.org"
     )
-    # Add the object as a new row to the table
     db.session.add(property_manager3)
     db.session.commit()
 
     # SEED PROPERTY
-
     property1 = Property(
         address="42 Dandelion Road, Mildura, Vic, 3500",
         property_manager_id=property_manager1.id
     )
-    # Add the object as a new row to the table
     db.session.add(property1)
 
     property2 = Property(
@@ -79,13 +102,11 @@ def seed_db():
 
 
     # SEED SUPPORT WORKER
-
     support_worker1 = SupportWorker(
         name="Sue Slime",
         phone="0412345678",
         email="SS@help.org"
     )
-    # Add the object as a new row to the table
     db.session.add(support_worker1)
 
     support_worker2 = SupportWorker(
@@ -105,14 +126,12 @@ def seed_db():
 
 
     # SEED TENANCY
-
     tenancy1 = Tenancy(
         start_date=date(2025, 12, 5),
         end_date=None,
         tenancy_status="Sign-Up",
         property_id=property3.id
     )
-    # Add the object as a new row to the table
     db.session.add(tenancy1)
 
     tenancy2 = Tenancy(
@@ -134,14 +153,12 @@ def seed_db():
 
 
     # SEED TENANT
-
     tenant1 = Tenant(
         name="James Arquette",
         date_of_birth=date(1973, 6, 25),
         phone="0417678900",
         email="banana-bicycle@hotmail.com"
     )
-    # Add the object as a new row to the table
     db.session.add(tenant1)
 
     tenant2 = Tenant(
@@ -162,7 +179,6 @@ def seed_db():
     db.session.commit()
 
     # SEED TENANT_TENANCY
-
     tenant_tenancy1 = TenantTenancy(
         rank=1,
         tenant=tenant1,
@@ -186,7 +202,6 @@ def seed_db():
 
 
     # SEED TENANT_SUPPORT_WORKER
-
     tenant_support_worker1 = TenantSupportWorker(
         rank=1,
         tenant=tenant1,
@@ -208,6 +223,5 @@ def seed_db():
     )
     db.session.add(tenant_support_worker3)
 
-    # commit the changes
     db.session.commit()
     print("Table seeded!🌱")

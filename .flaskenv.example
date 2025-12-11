@@ -1,3 +1,11 @@
 FLASK_APP=main:create_app
 FLASK_ENV=development
 FLASK_DEBUG=True
+
+# Run Flask development server
+flask run
+
+# Run database commands
+flask db create
+flask db drop
+flask db seed
