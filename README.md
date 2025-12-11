@@ -11,7 +11,16 @@ Linking tenants to tenancies and support workers (many-to-many relationships). R
 - [Background & Planning](#background--planning)
 - [Features](#features)
 - [Installation & Requirements](#installation-and-requirements)
+- [Basic Usage](#basic-usage)
+- [API Appearance](#api-appearance)
 - [Entity Relationship Diagram](#entity-relationship-diagram-erd)
+- [Database](#database)
+- [Seed Data](#seed-data)
+- [API Endpoints](#api-endpoints)
+- [Testing](#testing)
+- [SQL Queries](#sql-queries)
+- [Project Structure](#project-structure)
+- [Libraries & Licencing](#libraries--licencing)
 - [Acknowledgments](#acknowledgments)
 - [Author](#author)
 
@@ -197,45 +206,8 @@ Optional: implement unit tests with pytest.
 
 ## Project Structure
 
-property_management_api_build/
-│
-├─ Models/                                     # SQLAlchemy models
-│ ├─ property.py
-│ ├─ property_manager.py
-│ ├─ tenancy.py
-│ ├─ tenant.py
-│ ├─ support_worker.py
-│ ├─ tenant_tenancy.py
-│ └─ tenant_support_worker.py
-│
-├─ Schemas/                                    # Marshmallow schemas
-│ ├─ property_schema.py
-│ ├─ property_manager_schema.py
-│ ├─ tenancy_schema.py
-│ ├─ tenant_schema.py
-│ ├─ support_worker_schema.py
-│ ├─ tenant_tenancy_schema.py
-│ └─ tenant_support_worker_schema.py
-│
-├─ Controllers/                                # Flask blueprints for endpoints
-│ ├─ properties.py
-│ ├─ property_managers.py
-│ ├─ tenancies.py
-│ ├─ tenants.py
-│ └─ support_workers.py
-│
-├─ Images/                                     # Project images, diagrams, ERDs
-│
-├─ extensions.py                               # SQLAlchemy & Marshmallow instances
-├─ commands.py                                 # Flask CLI database commands (create/drop/seed)
-├─ config.py                                   # Environment-specific configuration
-├─ planning_document.py                        # Project planning notes or design document
-├─ main.py                                     # Main entry point for running the Flask app
-├─ requirements.txt                            # Python dependencies
-├─ .env.example                                # Example environment variables
-├─ .flaskenv.example                           # Example Flask environment variables
-├─ LICENSE                                     # Project license
-└─ README.md                                   # Project documentation
+![Project Structure](Images/Project_Structure_1.png)
+![Project Structure Con.](Images/Project_Structure_2.png)
 
 ## Libraries & Licencing
 
