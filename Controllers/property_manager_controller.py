@@ -59,7 +59,7 @@ def get_property_manager(property_manager_id):
 def get_property_managers_with_properties():
     """Return all property managers including their associated properties."""
     stmt = db.select(PropertyManager).options(selectinload(PropertyManager.properties))
-    managers = db.session.scalars(stmt).all()
+    managers = db.session.scalars(stmt)
     return jsonify(property_managers_with_properties_schema.dump(managers))
 
 # ============================================================

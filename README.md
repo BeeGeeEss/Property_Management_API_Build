@@ -11,12 +11,11 @@ Linking tenants to tenancies and support workers (many-to-many relationships). R
 - [Background & Planning](#background--planning)
 - [Features](#features)
 - [Installation & Requirements](#installation-and-requirements)
-- [Basic Usage](#basic-usage)
-- [API Appearance](#api-appearance)
 - [Entity Relationship Diagram](#entity-relationship-diagram-erd)
 - [Database](#database)
 - [Seed Data](#seed-data)
 - [API Endpoints](#api-endpoints)
+- [API URL](#api-url)
 - [Testing](#testing)
 - [SQL Queries](#sql-queries)
 - [Project Structure](#project-structure)
@@ -90,31 +89,97 @@ pip install -r requirements.txt
 4. Configure environment variables:
 
 Create a `.env` file based on `.env.example`:
+
 ```py
 DATABASE_URL="postgresql+psycopg2://user:password@host:port/database_name"
 FLASK_ENV="development"
 ```
 
-5. Initialize the database:
+5. Create the database:
+
+- Connect to PostgreSQL
 
 ```py
+sudo -u postgres psql
+```
+
+- Create the databse
+
+```py
+CREATE DATABASE property_management_db;
+```
+
+- Connect to the database
+
+```py
+\c property_management_db;
+```
+
+- Create the user role
+
+```py
+CREATE USER admin_pmdb WITH PASSWORD 'password';
+```
+
+- Grant the user required privileges
+
+```py
+GRANT ALL PRIVILEGES ON DATABASE property_management_db TO admin_pmdb;
+```
+
+- Grant the user access to the current/future schema
+
+```py
+GRANT ALL ON SCHEMA public TO admin_pmdb;
+```
+
+6. Manage the database:
+
+- Create and seed the tables
+
+```py
+flask db drop
 flask db create
 flask db seed
 ```
 
-6. Run the application:
+- Reconnect to databse
+
+```py
+sudo -u admin_pmdb psql -d property_management_db -h localhost
+```
+
+- Lookup all databases
+
+```py
+\l
+```
+
+- Lookup all users
+
+```py
+\du
+```
+
+- Lookup tables in the current database
+
+```py
+\dt
+```
+
+- Lookup all all results within a table
+
+```py
+SELECT * FROM table_name;
+```
+
+7. Run the application:
 
 ```py
 flask run
 ```
 
-7. API will be available at `http://localhost:5000`.
-
-
-
-## Basic Usage
-
-## API Appearance
+8. API will be available at `http://localhost:5000`.
 
 ## Entity Relationship Diagram (ERD)
 
@@ -145,64 +210,92 @@ The database is pre-seeded using the flask db seed command:
 
 ## API Endpoints
 
+Note: 'id' refers to the id of the entity being accessed, unless specifically noted 'worker_id' etc.
+
+
 ### Property Managers
 
 - **GET /property_managers/** – Retrieve all property managers  
-- **GET /property_managers/<id>/** – Retrieve a single property manager  
+- **GET /property_managers/id/** – Retrieve a single property manager  
 - **GET /property_managers/properties/** – Retrieve property managers with their properties  
 - **POST /property_managers/** – Create a new property manager  
-- **PUT /property_managers/<id>/** – Update a property manager  
-- **DELETE /property_managers/<id>/** – Delete a property manager  
+- **PUT /property_managers/id/** – Update a property manager  
+- **DELETE /property_managers/id/** – Delete a property manager  
 
 ### Properties
 
 - **GET /properties/** – Retrieve all properties  
-- **GET /properties/<id>/** – Retrieve a single property  
+- **GET /properties/id/** – Retrieve a single property  
 - **GET /properties/property_manager/** – Retrieve properties with their manager  
 - **POST /properties/** – Create a property  
-- **PUT /properties/<id>/** – Update a property  
-- **DELETE /properties/<id>/** – Delete a property  
+- **PUT /properties/id/** – Update a property  
+- **DELETE /properties/id/** – Delete a property  
 
 ### Support Workers
 
 - **GET /support_workers/** – Retrieve all support workers  
-- **GET /support_workers/<id>/** – Retrieve a single support worker  
+- **GET /support_workers/id/** – Retrieve a single support worker  
 - **GET /support_workers/tenants/** – Retrieve support workers with tenants  
 - **POST /support_workers/** – Create a support worker  
-- **PUT /support_workers/<id>/** – Update a support worker  
-- **DELETE /support_workers/<id>/** – Delete a support worker  
+- **PUT /support_workers/id/** – Update a support worker  
+- **DELETE /support_workers/id/** – Delete a support worker  
 
 ### Tenancies
 
 - **GET /tenancies/** – Retrieve all tenancies  
-- **GET /tenancies/<id>/** – Retrieve a single tenancy  
+- **GET /tenancies/id/** – Retrieve a single tenancy  
 - **GET /tenancies/properties/** – Retrieve tenancies with properties  
 - **GET /tenancies/tenants/** – Retrieve tenancies with tenants  
 - **GET /tenancies/search?status=&start_date=&end_date=** – Filter tenancies  
 - **POST /tenancies/** – Create a new tenancy  
-- **PUT /tenancies/<id>/** – Update a tenancy  
-- **DELETE /tenancies/<id>/** – Delete a tenancy  
-- **POST /tenancies/<id>/link_tenant/<tenant_id>/** – Link tenant to tenancy  
+- **PUT /tenancies/id/** – Update a tenancy  
+- **DELETE /tenancies/id/** – Delete a tenancy  
+- **POST /tenancies/id/link_tenant/tenant_id/** – Link tenant to tenancy  
 
 ### Tenants
 
 - **GET /tenants/** – Retrieve all tenants  
-- **GET /tenants/<id>/** – Retrieve a single tenant  
+- **GET /tenants/id/** – Retrieve a single tenant  
 - **GET /tenants/tenancies/** – Retrieve tenants with tenancies  
 - **GET /tenants/support_workers/** – Retrieve tenants with support workers  
 - **POST /tenants/** – Create a new tenant  
-- **PUT /tenants/<id>/** – Update a tenant  
-- **DELETE /tenants/<id>/** – Delete a tenant  
-- **POST /tenants/<id>/link_tenancy/<tenancy_id>/** – Link tenant to tenancy  
-- **POST /tenants/<id>/link_support_worker/<worker_id>/** – Link tenant to support worker  
+- **PUT /tenants/id/** – Update a tenant  
+- **DELETE /tenants/id/** – Delete a tenant  
+- **POST /tenants/id/link_tenancy/tenancy_id/** – Link tenant to tenancy  
+- **POST /tenants/id/link_support_worker/worker_id/** – Link tenant to support worker  
+
+## API URL
+
+The database for this project is hosted Neon, and the production version of the API is hosted on Render at the below url:
+
+URL = 
 
 ## Testing
 
-API can be tested via Postman or Insomnia.
+API can be tested via Postman or Insomnia [(below)](#api-requests).
 
 Optional: implement unit tests with pytest.
 
-## SQL Queries
+## API Requests
+
+API endpoints were tested via API requests in Insomnia. See example output below, or [example requests](/Images/Example_API_Requests/):
+
+### GET
+
+
+### POST
+
+
+### PUT
+
+
+### DELETE
+
+
+
+
+
+
 
 ## Project Structure
 
