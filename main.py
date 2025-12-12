@@ -10,7 +10,7 @@ This module:
 
 """
 
-from flask import Flask
+from flask import Flask, send_from_directory
 from dotenv import load_dotenv
 
 # Third party extensions
@@ -22,7 +22,6 @@ from commands import db_commands
 
 # Load variables from the .env file (e.g., database credentials)
 load_dotenv()
-
 
 def create_app():
     """Create and configure the Flask application instance.
@@ -49,8 +48,13 @@ def create_app():
     # Register custom database CLI commands (flask db create, db drop, etc.)
     app.register_blueprint(db_commands)
 
+    @app.route("/")
+    def landing_page():
+        return send_from_directory("static", "index.html")
+
     # Register all API blueprints from the controllers package
     for blueprint in registerable_controllers:
         app.register_blueprint(blueprint)
 
     return app
+
