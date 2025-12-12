@@ -10,8 +10,10 @@ This module:
 
 """
 
-from flask import Flask, send_from_directory
+import logging
+from flask import Flask, send_from_directory, jsonify
 from dotenv import load_dotenv
+from werkzeug.exceptions import HTTPException
 
 # Third party extensions
 from extensions import db, ma
@@ -52,9 +54,27 @@ def create_app():
     def landing_page():
         return send_from_directory("static", "index.html")
 
+    @app.errorhandler(HTTPException)
+    def handle_http_exception(e):
+        response = {
+            "error": e.name,
+            "description": e.description,
+            "status_code": e.code
+        }
+        return jsonify(response), e.code
+
+    @app.errorhandler(Exception)
+    def handle_general_exception(e):
+        logging.exception(e)  # logs full traceback for debugging
+        response = {
+            "error": "Internal Server Error",
+            "description": str(e),
+            "status_code": 500
+        }
+        return jsonify(response), 500
+
     # Register all API blueprints from the controllers package
     for blueprint in registerable_controllers:
         app.register_blueprint(blueprint)
 
     return app
-

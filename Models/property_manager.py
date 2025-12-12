@@ -1,4 +1,6 @@
 # Application module
+from sqlalchemy.orm import validates
+from marshmallow import ValidationError
 from extensions import db
 
 class PropertyManager(db.Model):
@@ -24,6 +26,18 @@ class PropertyManager(db.Model):
     name = db.Column(db.String(50), nullable=False)
     phone = db.Column(db.String(15), nullable=False)
     email = db.Column(db.String(50), nullable=False)
+
+    @validates("email")
+    def validate_email(self, value):
+        """
+    Validates the email field for the model.
+
+    Ensures the provided value contains an "@" symbol, indicating a minimally
+    valid email format. Raises a ValidationError if validation fails.
+    
+    """
+        if "@" not in value:
+            raise ValidationError("Invalid email address")
 
     # One-to-many: PropertyManager -> Property
     properties = db.relationship(

@@ -11,7 +11,8 @@ Provides commands to:
 from datetime import date
 
 # Third-party imports
-from flask import Blueprint
+from flask import Blueprint, jsonify
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
 # Application module
 from extensions import db
@@ -77,8 +78,15 @@ def seed_db():
         phone="0400003003",
         email="AC3@CPM.org"
     )
-    db.session.add(property_manager3)
-    db.session.commit()
+    try:
+        db.session.add(property_manager3)
+        db.session.commit()
+    except IntegrityError as e:
+        db.session.rollback()
+        return jsonify({"error": "Database integrity error", "details": str(e)}), 400
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        return jsonify({"error": "Database error", "details": str(e)}), 500
 
     # SEED PROPERTY
     property1 = Property(
@@ -97,8 +105,16 @@ def seed_db():
         address="100 Pterodactyl Close, Swan Hill, Vic, 3585",
         property_manager_id=property_manager3.id
     )
-    db.session.add(property3)
-    db.session.commit()
+    try:
+        db.session.add(property3)
+        db.session.commit()
+    except IntegrityError as e:
+        db.session.rollback()
+        return jsonify({"error": "Database integrity error", "details": str(e)}), 400
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        return jsonify({"error": "Database error", "details": str(e)}), 500
+
 
 
     # SEED SUPPORT WORKER
@@ -121,8 +137,15 @@ def seed_db():
         phone="0487654321",
         email="PP@AOD.org"
     )
-    db.session.add(support_worker3)
-    db.session.commit()
+    try:
+        db.session.add(support_worker3)
+        db.session.commit()
+    except IntegrityError as e:
+        db.session.rollback()
+        return jsonify({"error": "Database integrity error", "details": str(e)}), 400
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        return jsonify({"error": "Database error", "details": str(e)}), 500
 
 
     # SEED TENANCY
@@ -148,8 +171,15 @@ def seed_db():
         tenancy_status="Tenanted",
         property_id=property1.id
     )
-    db.session.add(tenancy3)
-    db.session.commit()
+    try:
+        db.session.add(support_worker3)
+        db.session.commit()
+    except IntegrityError as e:
+        db.session.rollback()
+        return jsonify({"error": "Database integrity error", "details": str(e)}), 400
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        return jsonify({"error": "Database error", "details": str(e)}), 500
 
 
     # SEED TENANT
@@ -175,8 +205,16 @@ def seed_db():
         phone="0438987654",
         email="jupiter.sun@gmail.com"
     )
-    db.session.add(tenant3)
-    db.session.commit()
+    try:
+        db.session.add(tenant3)
+        db.session.commit()
+    except IntegrityError as e:
+        db.session.rollback()
+        return jsonify({"error": "Database integrity error", "details": str(e)}), 400
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        return jsonify({"error": "Database error", "details": str(e)}), 500
+
 
     # SEED TENANT_TENANCY
     tenant_tenancy1 = TenantTenancy(
@@ -198,7 +236,15 @@ def seed_db():
         tenant=tenant3,
         tenancy=tenancy3
     )
-    db.session.add(tenant_tenancy3)
+    try:
+        db.session.add(tenant_tenancy3)
+        db.session.commit()
+    except IntegrityError as e:
+        db.session.rollback()
+        return jsonify({"error": "Database integrity error", "details": str(e)}), 400
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        return jsonify({"error": "Database error", "details": str(e)}), 500
 
 
     # SEED TENANT_SUPPORT_WORKER
@@ -221,7 +267,13 @@ def seed_db():
         tenant=tenant3,
         support_worker=support_worker3
     )
-    db.session.add(tenant_support_worker3)
-
-    db.session.commit()
+    try:
+        db.session.add(tenant_support_worker3)
+        db.session.commit()
+    except IntegrityError as e:
+        db.session.rollback()
+        return jsonify({"error": "Database integrity error", "details": str(e)}), 400
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        return jsonify({"error": "Database error", "details": str(e)}), 500
     print("Table seeded!🌱")

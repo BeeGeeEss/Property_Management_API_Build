@@ -1,4 +1,6 @@
 # Application module
+from sqlalchemy.orm import validates
+from marshmallow import ValidationError
 from extensions import db
 
 class Tenant(db.Model):
@@ -29,6 +31,18 @@ class Tenant(db.Model):
     date_of_birth = db.Column(db.Date, nullable=False)
     phone = db.Column(db.String(15))
     email = db.Column(db.String(50))
+
+    @validates("email")
+    def validate_email(self, value):
+        """
+    Validates the email field for the model.
+
+    Ensures the provided value contains an "@" symbol, indicating a minimally
+    valid email format. Raises a ValidationError if validation fails.
+    
+    """
+        if "@" not in value:
+            raise ValidationError("Invalid email address")
 
     # One-to-many: Tenant -> TenantTenancy
     tenant_tenancy = db.relationship(

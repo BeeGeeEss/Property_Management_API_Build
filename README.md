@@ -17,7 +17,7 @@ Linking tenants to tenancies and support workers (many-to-many relationships). R
 - [API Endpoints](#api-endpoints)
 - [API URL](#api-url)
 - [Testing](#testing)
-- [SQL Queries](#sql-queries)
+- [API Requests](#api-requests)
 - [Project Structure](#project-structure)
 - [Libraries & Licencing](#libraries--licencing)
 - [Acknowledgments](#acknowledgments)
