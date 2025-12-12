@@ -16,6 +16,7 @@ Linking tenants to tenancies and support workers (many-to-many relationships). R
 - [Seed Data](#seed-data)
 - [API Endpoints](#api-endpoints)
 - [API URL](#api-url)
+- [API Landing Page](#api-landing-page)
 - [Testing](#testing)
 - [API Requests](#api-requests)
 - [Project Structure](#project-structure)
@@ -76,8 +77,7 @@ cd property_management_api_build
 
 ```py
 python -m venv .venv
-source .venv/bin/activate   # macOS/Linux
-.venv\Scripts\activate      # Windows
+source .venv/bin/activate
 ```
 
 3. Install dependencies:
@@ -268,7 +268,11 @@ Note: 'id' refers to the id of the entity being accessed, unless specifically no
 
 The database for this project is hosted Neon, and the production version of the API is hosted on Render at the below url:
 
-URL = 
+URL = <https://property-management-api-build-1.onrender.com/>
+
+## API Landing Page
+
+![alt text](Images/API_Landing_Page.png)
 
 ## Testing
 
@@ -280,22 +284,60 @@ Optional: implement unit tests with pytest.
 
 API endpoints were tested via API requests in Insomnia. See example output below, or [example requests](/Images/Example_API_Requests/):
 
-### GET
+### Properties
 
 
-### POST
+```JSON
+ {
+	"id": 3,
+	"address": "100 Pterodactyl Close, Swan Hill, Vic, 3585"
+ }
+```
 
+### Property Managers
 
-### PUT
+```JSON
+ {
+    "id": 1,
+    "name": "Janice Justice",
+    "phone": "0400001001",
+    "email": "JJ1@CPM.org"
+ }
+```
 
+### Tenancies
 
-### DELETE
+```JSON
+{
+    "id": 1,
+    "start_date": "2025-12-05",
+    "end_date": null,
+    "tenancy_status": "Sign-Up"
+  }
+```
 
+### Tenants
 
+```JSON
+{
+    "id": 1,
+    "name": "James Arquette",
+    "date_of_birth": "1973-06-25",
+    "phone": "0417678900",
+    "email": "banana-bicycle@hotmail.com"
+}
+```
 
+### Support Workers
 
-
-
+```JSON
+{
+    "id": 1,
+    "name": "Sue Slime",
+    "phone": "0412345678",
+    "email": "SS@help.org"
+  }
+```
 
 ## Project Structure
 

@@ -28,7 +28,7 @@ class PropertyManager(db.Model):
     email = db.Column(db.String(50), nullable=False)
 
     @validates("email")
-    def validate_email(self, value):
+    def validate_email(self, key, value):
         """
     Validates the email field for the model.
 
@@ -38,6 +38,7 @@ class PropertyManager(db.Model):
     """
         if "@" not in value:
             raise ValidationError("Invalid email address")
+        return value
 
     # One-to-many: PropertyManager -> Property
     properties = db.relationship(

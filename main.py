@@ -52,7 +52,7 @@ def create_app():
 
     @app.route("/")
     def landing_page():
-        return send_from_directory("static", "index.html")
+        return send_from_directory("Static", "index.html")
 
     @app.errorhandler(HTTPException)
     def handle_http_exception(e):

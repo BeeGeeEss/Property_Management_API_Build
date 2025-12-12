@@ -85,15 +85,16 @@ def create_property():
 @properties_bp.route("/<int:property_id>/", methods=["DELETE"])
 def delete_property(property_id):
     """Delete a property by its ID and return the deleted record."""
-    property_obj = db.get(Property, property_id)
-
+    property_obj = db.session.get(Property, property_id)
     if not property_obj:
         return abort(404, description="Property not found ❌")
 
+    if property_obj.tenancies:
+        return jsonify({"error": "Cannot delete property with existing tenancies"}), 400
+
     db.session.delete(property_obj)
     db.session.commit()
-
-    return jsonify(property_schema.dump(property_obj)), 200
+    return '', 204
 
 # ============================================================
 # PUT: Update Property by ID

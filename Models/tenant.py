@@ -33,7 +33,7 @@ class Tenant(db.Model):
     email = db.Column(db.String(50))
 
     @validates("email")
-    def validate_email(self, value):
+    def validate_email(self, key, value):
         """
     Validates the email field for the model.
 
@@ -43,6 +43,7 @@ class Tenant(db.Model):
     """
         if "@" not in value:
             raise ValidationError("Invalid email address")
+        return value
 
     # One-to-many: Tenant -> TenantTenancy
     tenant_tenancy = db.relationship(
