@@ -39,9 +39,12 @@ tenants_bp = Blueprint(
 @tenants_bp.route("/", methods=["GET"])
 def get_tenants():
     """Return a list of all tenants."""
-    stmt = db.select(Tenant)
-    tenants_list = db.session.scalars(stmt)
-    return jsonify(tenants_schema.dump(tenants_list))
+    try:
+        stmt = db.select(Tenant)
+        tenants_list = db.session.scalars(stmt).all()
+        return jsonify(tenants_schema.dump(tenants_list)), 200
+    except SQLAlchemyError as e:
+        return jsonify({"error": str(e)}), 500
 
 # ============================================================
 # GET: Single Tenant by ID
@@ -49,15 +52,13 @@ def get_tenants():
 @tenants_bp.route("/<int:tenant_id>/", methods=["GET"])
 def get_tenant(tenant_id):
     """Return a single tenant by ID, or 404 if not found."""
-    stmt = db.select(Tenant).filter_by(id=tenant_id)
-    tenant_obj = db.session.scalar(stmt)
-
-    if not tenant_obj:
-        return abort(400, description= "Tenant does not exist")
-
-    result = tenant_schema.dump(tenant_obj)
-
-    return jsonify(result)
+    try:
+        tenant_obj = db.get(Tenant, tenant_id)
+        if not tenant_obj:
+            return abort(404, description="Tenant does not exist")
+        return jsonify(tenant_schema.dump(tenant_obj)), 200
+    except SQLAlchemyError as e:
+        return jsonify({"error": str(e)}), 500
 
 # ============================================================
 # GET: Tenants with Tenancies
@@ -65,9 +66,12 @@ def get_tenant(tenant_id):
 @tenants_bp.route("/tenancies", methods=["GET"])
 def get_tenants_with_tenancies():
     """Return all tenants including their assigned tenancies."""
-    stmt = db.select(Tenant).options(selectinload(Tenant.tenancies))
-    tenants = db.session.scalars(stmt).all()
-    return jsonify(tenants_with_tenancies_schema.dump(tenants))
+    try:
+        stmt = db.select(Tenant).options(selectinload(Tenant.tenancies))
+        tenants = db.session.scalars(stmt).all()
+        return jsonify(tenants_with_tenancies_schema.dump(tenants)), 200
+    except SQLAlchemyError as e:
+        return jsonify({"error": str(e)}), 500
 
 # ============================================================
 # GET: Tenants with Support Workers
@@ -75,11 +79,12 @@ def get_tenants_with_tenancies():
 @tenants_bp.route("/support_workers", methods=["GET"])
 def get_tenants_support_workers():
     """Return all tenants including their assigned support workers."""
-    stmt = db.select(Tenant).options(
-        selectinload(Tenant.support_workers)
-    )
-    tenants = db.session.execute(stmt).scalars().all()
-    return tenants_with_support_worker_schema.dump(tenants), 200
+    try:
+        stmt = db.select(Tenant).options(selectinload(Tenant.support_workers))
+        tenants = db.session.scalars(stmt).all()
+        return jsonify(tenants_with_support_worker_schema.dump(tenants)), 200
+    except SQLAlchemyError as e:
+        return jsonify({"error": str(e)}), 500
 
 # ============================================================
 # POST: Create a New Tenant
@@ -87,33 +92,22 @@ def get_tenants_support_workers():
 @tenants_bp.route("/", methods=["POST"])
 def create_tenant():
     """Create a new tenant and return it."""
-    tenant_fields = tenant_schema.load(request.json)
-
-    new_tenant = Tenant(
-        name=tenant_fields["name"],
-        date_of_birth=tenant_fields["date_of_birth"],
-        phone=tenant_fields.get("phone"),
-        email=tenant_fields.get("email")
-    )
-
-    db.session.add(new_tenant)
-    db.session.commit()
-    return jsonify(tenant_schema.dump(new_tenant)), 201
-
-# ============================================================
-# DELETE: Delete Tenant by ID
-# ============================================================
-@tenants_bp.route("/<int:tenant_id>/", methods=["DELETE"])
-def delete_tenant(tenant_id):
-    """Delete a tenant by ID and return the deleted record."""
-    tenant = db.get(Tenant, tenant_id)
-
-    if not tenant:
-        return abort(404, description="Tenant not found")
-
-    db.session.delete(tenant)
-    db.session.commit()
-    return jsonify(tenant_schema.dump(tenant)), 200
+    try:
+        tenant_fields = tenant_schema.load(request.json)
+        new_tenant = Tenant(
+            name=tenant_fields["name"],
+            date_of_birth=tenant_fields["date_of_birth"],
+            phone=tenant_fields.get("phone"),
+            email=tenant_fields.get("email")
+        )
+        db.session.add(new_tenant)
+        db.session.commit()
+        return jsonify(tenant_schema.dump(new_tenant)), 201
+    except KeyError as e:
+        return jsonify({"error": f"Missing field: {str(e)}"}), 400
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
 
 # ============================================================
 # PUT: Update Tenant by ID
@@ -121,28 +115,39 @@ def delete_tenant(tenant_id):
 @tenants_bp.route("/<int:tenant_id>/", methods=["PUT"])
 def update_tenant(tenant_id):
     """Update an existing tenant with provided fields."""
-    tenant_fields = tenant_schema.load(request.json, partial=True)
+    try:
+        tenant_fields = tenant_schema.load(request.json, partial=True)
+        tenant_obj = db.get(Tenant, tenant_id)
 
-    stmt = db.select(Tenant).filter_by(id=tenant_id)
-    tenant_obj = db.session.scalar(stmt)
+        if not tenant_obj:
+            return abort(404, description="Tenant does not exist")
 
-    if not tenant_obj:
-        return abort(400, description="Tenant does not exist")
+        for key in ["name", "email", "phone"]:
+            if key in tenant_fields:
+                setattr(tenant_obj, key, tenant_fields[key])
 
-    if "name" in tenant_fields:
-        tenant_obj.name = tenant_fields["name"]
+        db.session.commit()
+        return jsonify(tenant_schema.dump(tenant_obj)), 200
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
 
-    if "email" in tenant_fields:
-        tenant_obj.email = tenant_fields["email"]
-
-    if "phone" in tenant_fields:
-        tenant_obj.phone = tenant_fields["phone"]
-
-    if "support_worker_id" in tenant_fields:
-        tenant_obj.support_worker_id = tenant_fields["support_worker_id"]
-
-    db.session.commit()
-    return jsonify(tenant_schema.dump(tenant_obj)), 200
+# ============================================================
+# DELETE: Delete Tenant by ID
+# ============================================================
+@tenants_bp.route("/<int:tenant_id>/", methods=["DELETE"])
+def delete_tenant(tenant_id):
+    """Delete a tenant by ID and return the deleted record."""
+    try:
+        tenant = db.get(Tenant, tenant_id)
+        if not tenant:
+            return abort(404, description="Tenant not found")
+        db.session.delete(tenant)
+        db.session.commit()
+        return jsonify(tenant_schema.dump(tenant)), 200
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
 
 # ============================================================
 # POST: Link Tenant to Tenancy
@@ -154,28 +159,28 @@ def link_tenancy(tenant_id, tenancy_id):
 
     Returns a success message if link is created, otherwise an error.
     """
-    tenant = db.get(Tenant, tenant_id)
-    tenancy = db.get(Tenancy, tenancy_id)
+    try:
+        tenant = db.get(Tenant, tenant_id)
+        tenancy = db.get(Tenancy, tenancy_id)
 
-    if not tenant or not tenancy:
-        return abort(404, description="Tenant or Tenancy not found")
+        if not tenant or not tenancy:
+            return abort(404, description="Tenant or Tenancy not found")
 
-    # Prevent duplicate links
-    existing_link = db.session.scalar(
-        db.select(TenantTenancy)
-        .filter_by(tenant_id=tenant_id, tenancy_id=tenancy_id)
-    )
-    if existing_link:
-        return abort(400, description="Tenant already linked to this tenancy")
+        existing_link = db.session.scalar(
+            db.select(TenantTenancy).filter_by(
+                tenant_id=tenant_id, tenancy_id=tenancy_id
+            )
+        )
+        if existing_link:
+            return abort(400, description="Tenant already linked to this tenancy")
 
-    new_link = TenantTenancy(
-        tenant_id=tenant_id,
-        tenancy_id=tenancy_id
-    )
-    db.session.add(new_link)
-    db.session.commit()
-
-    return jsonify({"message": f"Tenant {tenant_id} linked to Tenancy {tenancy_id}"}), 201
+        new_link = TenantTenancy(tenant_id=tenant_id, tenancy_id=tenancy_id)
+        db.session.add(new_link)
+        db.session.commit()
+        return jsonify({"message": f"Tenant {tenant_id} linked to Tenancy {tenancy_id}"}), 201
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
 
 # ============================================================
 # POST: Link Tenant to Support Worker
@@ -187,23 +192,25 @@ def link_support_worker(tenant_id, worker_id):
 
     Returns a success message if link is created, otherwise an error.
     """
-    tenant = db.get(Tenant, tenant_id)
-    worker = db.get(SupportWorker, worker_id)
+    try:
+        tenant = db.get(Tenant, tenant_id)
+        worker = db.get(SupportWorker, worker_id)
 
-    if not tenant or not worker:
-        return abort(404, description="Tenant or Support Worker not found")
+        if not tenant or not worker:
+            return abort(404, description="Tenant or Support Worker not found")
 
-    existing_link = db.session.scalar(
-        db.select(TenantSupportWorker)
-        .filter_by(tenant_id=tenant_id, support_worker_id=worker_id)
-    )
-    if existing_link:
-        return abort(400, description="Tenant already linked to this support worker")
+        existing_link = db.session.scalar(
+            db.select(TenantSupportWorker).filter_by(
+                tenant_id=tenant_id, support_worker_id=worker_id
+            )
+        )
+        if existing_link:
+            return abort(400, description="Tenant already linked to this support worker")
 
-    new_link = TenantSupportWorker(
-        tenant_id=tenant_id,
-        support_worker_id=worker_id
-    )
-    db.session.add(new_link)
-    db.session.commit()
-    return jsonify({"message": f"Tenant {tenant_id} linked to Support Worker {worker_id}"}), 201
+        new_link = TenantSupportWorker(tenant_id=tenant_id, support_worker_id=worker_id)
+        db.session.add(new_link)
+        db.session.commit()
+        return jsonify({"message": f"Tenant {tenant_id} linked to Support Worker {worker_id}"}), 201
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500

@@ -11,10 +11,14 @@ Handles all routes related to Support Worker resources, including:
 
 from flask import Blueprint, jsonify, request, abort
 from sqlalchemy.orm import selectinload
+from sqlalchemy.exc import SQLAlchemyError
+from marshmallow import ValidationError
 
 # Application modules
 from extensions import db
 from models.support_worker import SupportWorker
+from models.tenant import Tenant
+from models.tenant_support_worker import TenantSupportWorker
 from schemas.support_worker_schema import (
     support_worker_schema,
     support_workers_schema,
@@ -32,9 +36,12 @@ support_workers_bp = Blueprint(
 @support_workers_bp.route("/", methods=["GET"])
 def get_support_workers():
     """Return a list of all support workers."""
-    stmt = db.select(SupportWorker)
-    workers_list = db.session.scalars(stmt)
-    return jsonify(support_workers_schema.dump(workers_list))
+    try:
+        stmt = db.select(SupportWorker)
+        workers_list = db.session.scalars(stmt).all()
+        return jsonify(support_workers_schema.dump(workers_list)), 200
+    except SQLAlchemyError as e:
+        return jsonify({"error": str(e)}), 500
 
 # ============================================================
 # GET: Single Support Worker by ID
@@ -42,15 +49,13 @@ def get_support_workers():
 @support_workers_bp.route("/<int:support_worker_id>/", methods=["GET"])
 def get_support_worker(support_worker_id):
     """Return a single support worker by ID, or 404 if not found."""
-    stmt = db.select(SupportWorker).filter_by(id=support_worker_id)
-    support_worker_obj = db.session.scalar(stmt)
-
-    if not support_worker_obj:
-        return abort(400, description= "Support Worker does not exist")
-
-    result = support_worker_schema.dump(support_worker_obj)
-
-    return jsonify(result)
+    try:
+        worker = db.get(SupportWorker, support_worker_id)
+        if not worker:
+            return abort(404, description="Support Worker does not exist")
+        return jsonify(support_worker_schema.dump(worker)), 200
+    except SQLAlchemyError as e:
+        return jsonify({"error": str(e)}), 500
 
 # ============================================================
 # GET: Support Workers with Nested Tenants
@@ -58,11 +63,12 @@ def get_support_worker(support_worker_id):
 @support_workers_bp.route("/tenants", methods=["GET"])
 def get_support_workers_tenants():
     """Return all support workers including their assigned tenants."""
-    stmt = db.select(SupportWorker).options(
-        selectinload(SupportWorker.tenants)
-    )
-    workers = db.session.execute(stmt).scalars().all()
-    return support_workers_with_tenants_schema.dump(workers), 200
+    try:
+        stmt = db.select(SupportWorker).options(selectinload(SupportWorker.tenants))
+        workers = db.session.scalars(stmt).all()
+        return jsonify(support_workers_with_tenants_schema.dump(workers)), 200
+    except SQLAlchemyError as e:
+        return jsonify({"error": str(e)}), 500
 
 # ============================================================
 # POST: Create a New Support Worker
@@ -70,34 +76,21 @@ def get_support_workers_tenants():
 @support_workers_bp.route("/", methods=["POST"])
 def create_support_worker():
     """Create a new support worker and return it."""
-    worker_fields = support_worker_schema.load(request.json)
-
-    new_worker = SupportWorker(
-        name=worker_fields["name"],
-        phone=worker_fields["phone"],
-        email=worker_fields["email"]
-    )
-
-    db.session.add(new_worker)
-    db.session.commit()
-
-    return jsonify(support_worker_schema.dump(new_worker)), 201
-
-# ============================================================
-# DELETE: Delete Support Worker by ID
-# ============================================================
-@support_workers_bp.route("/<int:support_worker_id>/", methods=["DELETE"])
-def delete_support_worker(support_worker_id):
-    """Delete a support worker by ID and return the deleted record."""
-    worker = db.get(SupportWorker, support_worker_id)
-
-    if not worker:
-        return abort(404, description="Support Worker not found")
-
-    db.session.delete(worker)
-    db.session.commit()
-
-    return jsonify(support_worker_schema.dump(worker)), 200
+    try:
+        worker_fields = support_worker_schema.load(request.json)
+        new_worker = SupportWorker(
+            name=worker_fields["name"],
+            phone=worker_fields.get("phone"),
+            email=worker_fields.get("email")
+        )
+        db.session.add(new_worker)
+        db.session.commit()
+        return jsonify(support_worker_schema.dump(new_worker)), 201
+    except ValidationError as ve:
+        return jsonify({"error": ve.messages}), 400
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
 
 # ============================================================
 # PUT: Update Support Worker by ID
@@ -105,23 +98,70 @@ def delete_support_worker(support_worker_id):
 @support_workers_bp.route("/<int:support_worker_id>/", methods=["PUT"])
 def update_support_worker(support_worker_id):
     """Update an existing support worker with provided fields."""
+    try:
+        worker_fields = support_worker_schema.load(request.json, partial=True)
+        worker_obj = db.get(SupportWorker, support_worker_id)
 
-    worker_fields = support_worker_schema.load(request.json, partial=True)
+        if not worker_obj:
+            return abort(404, description="Support Worker does not exist")
 
-    stmt = db.select(SupportWorker).filter_by(id=support_worker_id)
-    worker_obj = db.session.scalar(stmt)
+        for key in ["name", "phone", "email"]:
+            if key in worker_fields:
+                setattr(worker_obj, key, worker_fields[key])
 
-    # Apply updates if provided
-    if not worker_obj:
-        return abort(404, description="Support Worker does not exist")
+        db.session.commit()
+        return jsonify(support_worker_schema.dump(worker_obj)), 200
+    except ValidationError as ve:
+        return jsonify({"error": ve.messages}), 400
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
 
-    if "name" in worker_fields:
-        worker_obj.name = worker_fields["name"]
-    if "email" in worker_fields:
-        worker_obj.email = worker_fields["email"]
-    if "phone" in worker_fields:
-        worker_obj.phone = worker_fields["phone"]
+# ============================================================
+# DELETE: Delete Support Worker by ID
+# ============================================================
+@support_workers_bp.route("/<int:support_worker_id>/", methods=["DELETE"])
+def delete_support_worker(support_worker_id):
+    """Delete a support worker by ID and return the deleted record."""
+    try:
+        worker = db.get(SupportWorker, support_worker_id)
+        if not worker:
+            return abort(404, description="Support Worker not found")
+        db.session.delete(worker)
+        db.session.commit()
+        return jsonify(support_worker_schema.dump(worker)), 200
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
 
-    db.session.commit()
+# ============================================================
+# POST: Link Support Worker to Tenant
+# ============================================================
+@support_workers_bp.route("/<int:worker_id>/link_tenant/<int:tenant_id>/", methods=["POST"])
+def link_tenant(worker_id, tenant_id):
+    """Link a support worker to a tenant, preventing duplicates."""
+    try:
+        worker = db.get(SupportWorker, worker_id)
+        tenant = db.get(Tenant, tenant_id)
 
-    return jsonify(support_worker_schema.dump(worker_obj)), 200
+        if not worker or not tenant:
+            return abort(404, description="Support Worker or Tenant not found")
+
+        existing_link = db.session.scalar(
+            db.select(TenantSupportWorker).filter_by(
+                tenant_id=tenant_id, support_worker_id=worker_id
+            )
+        )
+        if existing_link:
+            return abort(400, description="Tenant already linked to this support worker")
+
+        new_link = TenantSupportWorker(
+            tenant_id=tenant_id,
+            support_worker_id=worker_id
+        )
+        db.session.add(new_link)
+        db.session.commit()
+        return jsonify({"message": f"Support Worker {worker_id} linked to Tenant {tenant_id}"}), 201
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500

@@ -11,6 +11,8 @@ Handles all routes related to Property resources, including:
 
 from flask import Blueprint, jsonify, request, abort
 from sqlalchemy.orm import selectinload
+from sqlalchemy.exc import SQLAlchemyError
+from marshmallow import ValidationError
 
 # Application modules
 from extensions import db
@@ -31,9 +33,12 @@ properties_bp = Blueprint('properties', __name__, url_prefix="/properties")
 @properties_bp.route("/", methods=["GET"])
 def get_properties():
     """Return a list of all properties."""
-    stmt = db.select(Property)
-    properties_list = db.session.scalars(stmt)
-    return jsonify(properties_schema.dump(properties_list))
+    try:
+        stmt = db.select(Property)
+        properties_list = db.session.scalars(stmt).all()
+        return jsonify(properties_schema.dump(properties_list)), 200
+    except SQLAlchemyError as e:
+        return jsonify({"error": str(e)}), 500
 
 # ============================================================
 # GET: Single Property by ID
@@ -41,15 +46,13 @@ def get_properties():
 @properties_bp.route("/<int:property_id>/", methods=["GET"])
 def get_property(property_id):
     """Return a single property by its ID, or 404 if not found."""
-    stmt = db.select(Property).filter_by(id=property_id)
-    property_obj = db.session.scalar(stmt)
-
-    if not property_obj:
-        return abort(400, description= "Property does not exist")
-
-    result = property_schema.dump(property_obj)
-
-    return jsonify(result)
+    try:
+        prop = db.get(Property, property_id)
+        if not prop:
+            return abort(404, description="Property does not exist")
+        return jsonify(property_schema.dump(prop)), 200
+    except SQLAlchemyError as e:
+        return jsonify({"error": str(e)}), 500
 
 # ============================================================
 # GET: Properties with Nested Property Managers
@@ -57,9 +60,12 @@ def get_property(property_id):
 @properties_bp.route("/property_managers", methods=["GET"])
 def get_properties_with_managers():
     """Return all properties including their associated property managers."""
-    stmt = db.select(Property).options(selectinload(Property.property_manager))
-    properties = db.session.scalars(stmt)
-    return jsonify(properties_with_manager_schema.dump(properties))
+    try:
+        stmt = db.select(Property).options(selectinload(Property.managers))
+        properties_list = db.session.scalars(stmt).all()
+        return jsonify(properties_with_manager_schema.dump(properties_list)), 200
+    except SQLAlchemyError as e:
+        return jsonify({"error": str(e)}), 500
 
 # ============================================================
 # POST: Create a New Property
@@ -67,34 +73,21 @@ def get_properties_with_managers():
 @properties_bp.route("/", methods=["POST"])
 def create_property():
     """Create a new property and return it."""
-    property_fields = property_schema.load(request.json)
-
-    new_property = Property(
-        address=property_fields["address"],
-        property_manager_id=property_fields["property_manager_id"]
-    )
-
-    db.session.add(new_property)
-    db.session.commit()
-
-    return jsonify(property_schema.dump(new_property)), 201
-
-# ============================================================
-# DELETE: Delete Property by ID
-# ============================================================
-@properties_bp.route("/<int:property_id>/", methods=["DELETE"])
-def delete_property(property_id):
-    """Delete a property by its ID and return the deleted record."""
-    property_obj = db.session.get(Property, property_id)
-    if not property_obj:
-        return abort(404, description="Property not found ❌")
-
-    if property_obj.tenancies:
-        return jsonify({"error": "Cannot delete property with existing tenancies"}), 400
-
-    db.session.delete(property_obj)
-    db.session.commit()
-    return '', 204
+    try:
+        property_fields = property_schema.load(request.json)
+        new_property = Property(
+            name=property_fields["name"],
+            address=property_fields.get("address"),
+            type=property_fields.get("type")
+        )
+        db.session.add(new_property)
+        db.session.commit()
+        return jsonify(property_schema.dump(new_property)), 201
+    except ValidationError as ve:
+        return jsonify({"error": ve.messages}), 400
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
 
 # ============================================================
 # PUT: Update Property by ID
@@ -102,21 +95,38 @@ def delete_property(property_id):
 @properties_bp.route("/<int:property_id>/", methods=["PUT"])
 def update_property(property_id):
     """Update an existing property with provided fields."""
-    property_fields = property_schema.load(request.json, partial=True)
+    try:
+        property_fields = property_schema.load(request.json, partial=True)
+        prop = db.get(Property, property_id)
 
-    stmt = db.select(Property).filter_by(id=property_id)
-    property_obj = db.session.scalar(stmt)
+        if not prop:
+            return abort(404, description="Property does not exist")
 
-    if not property_obj:
-        return abort(404, description="Property does not exist")
+        for key in ["name", "address", "type"]:
+            if key in property_fields:
+                setattr(prop, key, property_fields[key])
 
-    # Apply updates only if provided
-    if "address" in property_fields:
-        property_obj.address = property_fields["address"]
+        db.session.commit()
+        return jsonify(property_schema.dump(prop)), 200
+    except ValidationError as ve:
+        return jsonify({"error": ve.messages}), 400
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
 
-    if "property_manager_id" in property_fields:
-        property_obj.property_manager_id = property_fields["property_manager_id"]
-
-    db.session.commit()
-
-    return jsonify(property_schema.dump(property_obj)), 200
+# ============================================================
+# DELETE: Delete Property by ID
+# ============================================================
+@properties_bp.route("/<int:property_id>/", methods=["DELETE"])
+def delete_property(property_id):
+    """Delete a property by its ID and return the deleted record."""
+    try:
+        prop = db.get(Property, property_id)
+        if not prop:
+            return abort(404, description="Property not found")
+        db.session.delete(prop)
+        db.session.commit()
+        return jsonify(property_schema.dump(prop)), 200
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500

@@ -11,6 +11,8 @@ Handles all routes related to Property Manager resources, including:
 
 from flask import Blueprint, jsonify, request, abort
 from sqlalchemy.orm import selectinload
+from sqlalchemy.exc import SQLAlchemyError
+from marshmallow import ValidationError
 
 # Application modules
 from extensions import db
@@ -32,9 +34,12 @@ property_managers_bp = Blueprint(
 @property_managers_bp.route("/", methods=["GET"])
 def get_property_managers():
     """Return a list of all property managers."""
-    stmt = db.select(PropertyManager)
-    managers_list = db.session.scalars(stmt)
-    return jsonify(property_managers_schema.dump(managers_list))
+    try:
+        stmt = db.select(PropertyManager)
+        managers_list = db.session.scalars(stmt).all()
+        return jsonify(property_managers_schema.dump(managers_list)), 200
+    except SQLAlchemyError as e:
+        return jsonify({"error": str(e)}), 500
 
 # ============================================================
 # GET: Single Property Manager by ID
@@ -42,15 +47,13 @@ def get_property_managers():
 @property_managers_bp.route("/<int:property_manager_id>/", methods=["GET"])
 def get_property_manager(property_manager_id):
     """Return a single property manager by ID, or 404 if not found."""
-    stmt = db.select(PropertyManager).filter_by(id=property_manager_id)
-    property_manager_obj = db.session.scalar(stmt)
-
-    if not property_manager_obj:
-        return abort(400, description= "Property Manager does not exist")
-
-    result = property_manager_schema.dump(property_manager_obj)
-
-    return jsonify(result)
+    try:
+        manager = db.get(PropertyManager, property_manager_id)
+        if not manager:
+            return abort(404, description="Property Manager does not exist")
+        return jsonify(property_manager_schema.dump(manager)), 200
+    except SQLAlchemyError as e:
+        return jsonify({"error": str(e)}), 500
 
 # ============================================================
 # GET: Property Managers with Nested Properties
@@ -58,9 +61,12 @@ def get_property_manager(property_manager_id):
 @property_managers_bp.route("/properties", methods=["GET"])
 def get_property_managers_with_properties():
     """Return all property managers including their associated properties."""
-    stmt = db.select(PropertyManager).options(selectinload(PropertyManager.properties))
-    managers = db.session.scalars(stmt)
-    return jsonify(property_managers_with_properties_schema.dump(managers))
+    try:
+        stmt = db.select(PropertyManager).options(selectinload(PropertyManager.properties))
+        managers = db.session.scalars(stmt).all()
+        return jsonify(property_managers_with_properties_schema.dump(managers)), 200
+    except SQLAlchemyError as e:
+        return jsonify({"error": str(e)}), 500
 
 # ============================================================
 # POST: Create a New Property Manager
@@ -68,34 +74,21 @@ def get_property_managers_with_properties():
 @property_managers_bp.route("/", methods=["POST"])
 def create_property_manager():
     """Create a new property manager and return it."""
-    manager_fields = property_manager_schema.load(request.json)
-
-    new_manager = PropertyManager(
-        name=manager_fields["name"],
-        phone=manager_fields["phone"],
-        email=manager_fields["email"]
-    )
-
-    db.session.add(new_manager)
-    db.session.commit()
-
-    return jsonify(property_manager_schema.dump(new_manager)), 201
-
-# ============================================================
-# DELETE: Delete Property Manager by ID
-# ============================================================
-@property_managers_bp.route("/<int:property_manager_id>/", methods=["DELETE"])
-def delete_property_manager(property_manager_id):
-    """Delete a property manager by ID and return the deleted record."""
-    stmt = db.select(PropertyManager).filter_by(id=property_manager_id)
-    manager = db.session.scalar(stmt)
-
-    if not manager:
-        return abort(404, description="Property Manager not found")
-
-    db.session.delete(manager)
-    db.session.commit()
-    return jsonify(property_manager_schema.dump(manager)), 200
+    try:
+        manager_fields = property_manager_schema.load(request.json)
+        new_manager = PropertyManager(
+            name=manager_fields["name"],
+            phone=manager_fields.get("phone"),
+            email=manager_fields.get("email")
+        )
+        db.session.add(new_manager)
+        db.session.commit()
+        return jsonify(property_manager_schema.dump(new_manager)), 201
+    except ValidationError as ve:
+        return jsonify({"error": ve.messages}), 400
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
 
 # ============================================================
 # PUT: Update Property Manager by ID
@@ -103,21 +96,38 @@ def delete_property_manager(property_manager_id):
 @property_managers_bp.route("/<int:property_manager_id>/", methods=["PUT"])
 def update_property_manager(property_manager_id):
     """Update an existing property manager with provided fields."""
-    stmt = db.select(PropertyManager).filter_by(id=property_manager_id)
-    manager = db.session.scalar(stmt)
+    try:
+        manager_fields = property_manager_schema.load(request.json, partial=True)
+        manager_obj = db.get(PropertyManager, property_manager_id)
 
-    if not manager:
-        return abort(404, description="Property Manager not found")
+        if not manager_obj:
+            return abort(404, description="Property Manager does not exist")
 
-    manager_fields = property_manager_schema.load(request.json, partial=True)
+        for key in ["name", "phone", "email"]:
+            if key in manager_fields:
+                setattr(manager_obj, key, manager_fields[key])
 
-    if "name" in manager_fields:
-        manager.name = manager_fields["name"]
-    if "phone" in manager_fields:
-        manager.phone = manager_fields["phone"]
-    if "email" in manager_fields:
-        manager.email = manager_fields["email"]
+        db.session.commit()
+        return jsonify(property_manager_schema.dump(manager_obj)), 200
+    except ValidationError as ve:
+        return jsonify({"error": ve.messages}), 400
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
 
-    db.session.commit()
-
-    return jsonify(property_manager_schema.dump(manager)), 200
+# ============================================================
+# DELETE: Delete Property Manager by ID
+# ============================================================
+@property_managers_bp.route("/<int:property_manager_id>/", methods=["DELETE"])
+def delete_property_manager(property_manager_id):
+    """Delete a property manager by ID and return the deleted record."""
+    try:
+        manager = db.get(PropertyManager, property_manager_id)
+        if not manager:
+            return abort(404, description="Property Manager not found")
+        db.session.delete(manager)
+        db.session.commit()
+        return jsonify(property_manager_schema.dump(manager)), 200
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
