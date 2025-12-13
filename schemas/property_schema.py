@@ -16,7 +16,7 @@ Attributes:
 # Imports
 from marshmallow import fields
 from extensions import ma
-from Models.property import Property
+from models.property import Property
 
 class PropertySchema(ma.SQLAlchemySchema):
     """

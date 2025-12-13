@@ -19,7 +19,7 @@ from werkzeug.exceptions import HTTPException
 from extensions import db, ma
 
 # Application Modules
-from Controllers import registerable_controllers
+from controllers import registerable_controllers
 from commands import db_commands
 
 # Load variables from the .env file (e.g., database credentials)

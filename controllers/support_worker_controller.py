@@ -14,8 +14,8 @@ from sqlalchemy.orm import selectinload
 
 # Application modules
 from extensions import db
-from Models.support_worker import SupportWorker
-from Schemas.support_worker_schema import (
+from models.support_worker import SupportWorker
+from schemas.support_worker_schema import (
     support_worker_schema,
     support_workers_schema,
     support_workers_with_tenants_schema

@@ -20,7 +20,7 @@ Attributes:
 # Imports
 from marshmallow import fields
 from extensions import ma
-from Models.tenant import Tenant
+from models.tenant import Tenant
 
 class TenantSchema(ma.SQLAlchemySchema):
     """

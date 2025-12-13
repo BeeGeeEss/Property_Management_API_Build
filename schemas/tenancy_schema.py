@@ -19,7 +19,7 @@ Attributes:
 # Imports
 from marshmallow import fields
 from extensions import ma
-from Models.tenancy import Tenancy
+from models.tenancy import Tenancy
 
 class TenancySchema(ma.SQLAlchemySchema):
     """

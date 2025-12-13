@@ -14,8 +14,8 @@ from sqlalchemy.orm import selectinload
 
 # Application modules
 from extensions import db
-from Models.property import Property
-from Schemas.property_schema import (
+from models.property import Property
+from schemas.property_schema import (
     property_schema,
     properties_schema,
     properties_with_manager_schema

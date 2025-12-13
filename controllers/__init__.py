@@ -7,11 +7,11 @@ all controllers easily without importing them individually.
 
 """
 
-from Controllers.property_controller import properties_bp
-from Controllers.property_manager_controller import property_managers_bp
-from Controllers.support_worker_controller import support_workers_bp
-from Controllers.tenancy_controller import tenancies_bp
-from Controllers.tenant_controller import tenants_bp
+from controllers.property_controller import properties_bp
+from controllers.property_manager_controller import property_managers_bp
+from controllers.support_worker_controller import support_workers_bp
+from controllers.tenancy_controller import tenancies_bp
+from controllers.tenant_controller import tenants_bp
 
 registerable_controllers = [
     properties_bp,

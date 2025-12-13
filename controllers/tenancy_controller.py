@@ -16,11 +16,11 @@ from sqlalchemy.orm import selectinload
 
 # Application modules
 from extensions import db
-from Models.tenancy import Tenancy
-from Models.tenant import Tenant
-from Models.property import Property
-from Models.tenant_tenancy import TenantTenancy
-from Schemas.tenancy_schema import (
+from models.tenancy import Tenancy
+from models.tenant import Tenant
+from models.property import Property
+from models.tenant_tenancy import TenantTenancy
+from schemas.tenancy_schema import (
     tenancy_schema,
     tenancies_schema,
     tenancies_with_property_schema,

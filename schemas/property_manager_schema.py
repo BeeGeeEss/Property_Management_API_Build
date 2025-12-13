@@ -17,7 +17,7 @@ Attributes:
 # Imports
 from marshmallow import fields
 from extensions import ma
-from Models.property_manager import PropertyManager
+from models.property_manager import PropertyManager
 
 class PropertyManagerSchema(ma.SQLAlchemySchema):
     class Meta:

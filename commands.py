@@ -16,13 +16,13 @@ from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
 # Application module
 from extensions import db
-from Models.property_manager import PropertyManager
-from Models.property import Property
-from Models.support_worker import SupportWorker
-from Models.tenancy import Tenancy
-from Models.tenant import Tenant
-from Models.tenant_tenancy import TenantTenancy
-from Models.tenant_support_worker import TenantSupportWorker
+from models.property_manager import PropertyManager
+from models.property import Property
+from models.support_worker import SupportWorker
+from models.tenancy import Tenancy
+from models.tenant import Tenant
+from models.tenant_tenancy import TenantTenancy
+from models.tenant_support_worker import TenantSupportWorker
 
 # Blueprint for database commands
 db_commands = Blueprint("db", __name__)

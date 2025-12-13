@@ -16,7 +16,7 @@ Attributes:
 # Imports
 from marshmallow import fields
 from extensions import ma
-from Models.support_worker import SupportWorker
+from models.support_worker import SupportWorker
 
 class SupportWorkerSchema(ma.SQLAlchemySchema):
     """

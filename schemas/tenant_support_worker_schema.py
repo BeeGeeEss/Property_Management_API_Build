@@ -17,7 +17,7 @@ Schema Instances:
 # Imports
 from marshmallow import fields
 from extensions import ma
-from Models.tenant_support_worker import TenantSupportWorker
+from models.tenant_support_worker import TenantSupportWorker
 
 class TenantSupportWorkerSchema(ma.SQLAlchemySchema):
     """
