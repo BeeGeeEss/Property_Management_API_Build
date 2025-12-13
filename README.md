@@ -41,18 +41,18 @@ For more details, see [Planning Documentation.](/Planning_Document.md)
 
 - Full CRUD operations for all entities.
 - Many-to-many relationship management:
-    - Tenants ↔ Tenancies
-    - Tenants ↔ Support Workers
+  - Tenants ↔ Tenancies
+  - Tenants ↔ Support Workers
 - Nested schemas for relational queries:
-    - Fetch tenants with their tenancies
-    - Fetch property managers with properties
-    - Fetch tenancies with properties and tenants
+  - Fetch tenants with their tenancies
+  - Fetch property managers with properties
+  - Fetch tenancies with properties and tenants
 - Seed data for rapid testing.
 - Configurable via .env and environment-specific configuration classes.
 
 ## Installation and requirements
 
-### Requirements:
+### Requirements
 
 - Python 3.12 – Programming language used for the application.
 - Flask – Lightweight web framework for building the API.
@@ -64,7 +64,7 @@ For more details, see [Planning Documentation.](/Planning_Document.md)
 - python-dotenv – Loads environment variables from .env file.
 - gunicorn – Production WSGI server for running the Flask application.
 
-### Installation:
+### Installation
 
 1. Clone the repository:
 
@@ -183,9 +183,9 @@ flask run
 
 ## Entity Relationship Diagram (ERD)
 
-![ERD](/Images/ERD_Final.png)
+![ERD](/images/ERD_Final.png)
 
-![ERD Relationship Table](/Images/Relationship_Table_Final.png)
+![ERD Relationship Table](/images/Relationship_Table_Final.png)
 
 ## Database
 
@@ -211,7 +211,6 @@ The database is pre-seeded using the flask db seed command:
 ## API Endpoints
 
 Note: 'id' refers to the id of the entity being accessed, unless specifically noted 'worker_id' etc.
-
 
 ### Property Managers
 
@@ -268,11 +267,11 @@ Note: 'id' refers to the id of the entity being accessed, unless specifically no
 
 The database for this project is hosted Neon, and the production version of the API is hosted on Render at the below url:
 
-URL = <https://property-management-api-build-1.onrender.com/>
+URL = <https://property-management-api-build.onrender.com>
 
 ## API Landing Page
 
-![alt text](Images/API_Landing_Page.png)
+![alt text](/images/API_Landing_Page.png)
 
 ## Testing
 
@@ -286,11 +285,10 @@ API endpoints were tested via API requests in Insomnia. See example output below
 
 ### Properties
 
-
 ```JSON
  {
-	"id": 3,
-	"address": "100 Pterodactyl Close, Swan Hill, Vic, 3585"
+  "id": 3,
+  "address": "100 Pterodactyl Close, Swan Hill, Vic, 3585"
  }
 ```
 
@@ -341,8 +339,48 @@ API endpoints were tested via API requests in Insomnia. See example output below
 
 ## Project Structure
 
-![Project Structure](Images/Project_Structure_1.png)
-![Project Structure Con.](Images/Project_Structure_2.png)
+Property_Management_API/
+├── controllers/
+    ├── property_controller.py
+│   ├── property_manager_controller.py
+│   ├── support_worker_controller.py
+│   ├── tenancy_controller.py
+│   └── tenant_controller.py
+├── models/
+│   ├── __init**.py
+│   ├── property_manager.py
+│   ├── property.py
+│   ├── support_worker.py
+│   ├── tenancy.py
+│   ├── tenant_support_worker.py
+│   ├── tenant_tenancy.py
+│   └── tenant.py
+├── schemas/
+│   ├──__init**.py
+│   ├── property_manager_schema.py
+│   ├── property_schema.py
+│   ├── support_worker_schema.py
+│   ├── tenancy_schema.py
+│   ├── tenant_schema.py
+│   ├── tenant_support_worker_schema.py
+│   └── tenant_tenancy_schema.py
+├── static/
+│   └── index.html
+├── images/
+│   └── ...
+├── commands.py
+├── config.py
+├── extensions.py
+├── main.py
+├── planning_document.md
+├── README.md
+├── LICENSE
+├── requirements.txt
+├── .env
+└── .flaskenv
+
+![Project Structure]()
+![Project Structure Con.]()
 
 ## Libraries & Licencing
 
